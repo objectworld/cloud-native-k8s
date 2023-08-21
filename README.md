@@ -13,7 +13,7 @@
 
 
 
-# 1. 시작전에 ( [가이드 문서 보기](./beforebegin/beforebegin.md) )  
+# 1. 시작전에 ( [가이드 문서 보기](./preparation/preparation.md) )  
 
 
 
