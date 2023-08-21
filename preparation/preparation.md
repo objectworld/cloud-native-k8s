@@ -297,68 +297,20 @@ github site 를 이용하기를 희망한다면 굳이 설치하지 않아도 �
 
 github 에서 교육 자료를 download 하자.
 
+* https://github.com/objectworld/cloud-native-k8s
 * https://github.com/objectworld/chapter08.01-docker-hello
+* https://github.com/objectworld/chapter08.02-docker-hello-spotify-dockerfile
+* https://github.com/objectworld/chapter08.03-docker-hello-fabric8-docker
+* https://github.com/objectworld/chapter08.04-docker-hello-jib
+* https://github.com/objectworld/chapter08.05-docker-compose
 * https://github.com/objectworld/chapter08.06-docker-spring-cloud-framework
-* 
-
-```sh
-## githubrepo directory 생성
-$ mkdir c:\githubrepo
-
-$ cd c:\githubrepo
-
-$ git clone https://github.com/ssongman/ktds-edu-k8s-istio.git
-Cloning into 'ktds-edu-k8s-istio'...
-remote: Enumerating objects: 92, done.
-remote: Counting objects: 100% (92/92), done.
-remote: Compressing objects: 100% (79/79), done.
-remote: Total 92 (delta 12), reused 88 (delta 12), pack-reused 0
-Receiving objects: 100% (92/92), 2.94 MiB | 3.61 MiB/s, done.
-Resolving deltas: 100% (12/12), done.
-
-$ dir c:\githubrepo
-2023-05-07  오후 09:52    <DIR>          .
-2023-05-07  오후 09:52    <DIR>          ktds-edu-k8s-istio
-
-```
+* https://github.com/objectworld/chapter08.07-docker-spring-cloud-shopping
+* https://github.com/objectworld/chapter09.01-k8s-postgresql
 
 
 
-#### (3) 교육자료 실행
+#### (3) 교육자료 확인
 
-typora 를 실행하여 c:\githubrepo\ktds-edu-k8s-istio/README.md  를 load 한다.
+typora 를 실행하여 cloud-native-k8s/README.md  를 load 한다.
 
-
-
-
-
-
-
-
-### 4) 실습자료 download
-
-접속 완료 하였다면 테스트를 위해서 git clone 으로 실습 자료를 받아 놓자.
-
-```sh
-# 본인 Namespace 명으로 변경
-$ cd ~/users/yjsong
-
-## githubrepo directory 생성
-$ mkdir -p ~/users/yjsong/githubrepo
-
-$ cd ~/users/yjsong/githubrepo
-
-$ git clone https://github.com/ssongman/ktds-edu-k8s-istio.git
-Cloning into 'ktds-edu-k8s-istio'...
-remote: Enumerating objects: 69, done.
-remote: Counting objects: 100% (69/69), done.
-remote: Compressing objects: 100% (55/55), done.
-remote: Total 69 (delta 15), reused 62 (delta 11), pack-reused 0
-Unpacking objects: 100% (69/69), 1.63 MiB | 4.09 MiB/s, done.
-
-$ ll ~/users/yjsong/githubrepo
-drwxrwxr-x 7 ktdseduuser ktdseduuser 4096 May 13 17:36 ktds-edu-k8s-istio/
-
-$ cd ~/users/yjsong/githubrepo/ktds-edu-k8s-istio/
-```
 

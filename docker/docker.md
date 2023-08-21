@@ -547,7 +547,8 @@ Spring Initializr(https : //start.spring.io/)를 사용하여 새로운 docker-h
 @RestController
 @SpringBootApplication
 public class HelloApplication {
-
+	static String ipAddress = null;
+    
 	public static void main(String[] args) {
 		SpringApplication.run(HelloApplication.class, args);
 		InetAddress ip;
@@ -1742,7 +1743,15 @@ Node left the swarm.
 
 
 
-이 절에서는 8.5절에서 학습한 내용을 바탕으로 쇼핑몰 운영에 필요한 마이크로서비스 패턴 및 마이크로서비스들을 배포할 것이다. 우선 도커 이미지 빌드를 위해서는 8.5.4.3절에서 설명한 구글의 Jib를 이용하여 이미지를 빌드하고, 이를 바탕으로 마이크로서비스 패턴 및 쇼핑몰 애플리케이션을 컨테이너로 배포할 것이다.
+이 절에서는 8.5절에서 학습한 내용을 바탕으로 쇼핑몰 운영에 필요한 마이크로서비스 패턴 및 마이크로서비스들을 배포할 것이다. 우선 도커 이미지 빌드를 위해서는 8.5.4.3절에서 설명한 구글의 Jib를 이용하여 이미지를 빌드하고, 이를 바탕으로 마이크로서비스 패턴 및 쇼핑몰 애플리케이션을 컨테이너로 배포할 것이다. 
+
+쇼핑몰 애플리케이션은 [그림 8-12]와 같이 3개의 마이크로서비스와 이를 연계하기 위한 마이크로서비스 패턴으로 구성되어 있다.
+
+
+
+![image-20230821124233014](../../SpringBootMSA/08.%20%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88%20%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0/%EA%B7%B8%EB%A6%BC%208-12.png)
+
+[그림 8-12] 쇼핑몰 애플리케이션 구성도
 
 
 
