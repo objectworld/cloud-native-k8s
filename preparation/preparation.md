@@ -297,6 +297,8 @@ github site 를 이용하기를 희망한다면 굳이 설치하지 않아도 �
 
 github 에서 교육 자료를 download 하자.
 
+* https://github.com/objectworld/chapter08.01-docker-hello
+* https://github.com/objectworld/chapter08.06-docker-spring-cloud-framework
 * 
 
 ```sh
