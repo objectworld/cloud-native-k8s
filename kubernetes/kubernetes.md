@@ -561,7 +561,7 @@ K3d CLI는 새 K3s 클러스터를 자동으로 생성하고 시작하는 `clust
 
 
 ```sh
-$k3d cluster create --servers 1 --agents 1 --port "8888:80@loadbalancer" --port "8889:443@loadbalancer"
+$ k3d cluster create --servers 1 --agents 1 --port "8888:80@loadbalancer" --port "8889:443@loadbalancer"
 INFO[0000] portmapping '8888:80' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy]
 INFO[0000] portmapping '8889:443' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy]
 INFO[0000] Prep: Network
@@ -1851,7 +1851,7 @@ replicaset.apps/postgres-7dd49bb44b   1         1         1       9s
 
 
 ```sh
-$ kubectl exec -it postgres-7dd49bb44b-tg9dm --  psql -h localhost -U postgres --password -p 5432 shopping
+$ kubectl exec -it postgres-7dd49bb44b-92qth --  psql -h localhost -U postgres --password -p 5432 shopping
 ```
 
 
