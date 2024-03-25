@@ -980,7 +980,7 @@ docker-hello   latest    738f664933d6   About an hour ago   428MB
 ubuntu         latest    5a81c4b8502e   6 weeks ago         77.8MB
 hello-world    latest    9c7a54a9a43c   3 months ago        13.3kB
 
-$ docker run -p 28080:8080:v1
+$ docker run -p 28080:8080:v1 objectworld/docker-hello
 Unable to find image 'objectworld/docker-hello:v1' locally
 v1: Pulling from objectworld/docker-hello
 Digest: sha256:3844461d85307ebb343afc08fc288b417dd532643603beee8a0cc2d2e4444ebd
@@ -1748,7 +1748,7 @@ Node left the swarm.
 
 
 
-![image-20230821124233014](docker/%EA%B7%B8%EB%A6%BC%208-12-1711334496814.png)
+![그림 8-12](docker/%EA%B7%B8%EB%A6%BC%208-12-1711349170532.png)
 
 [그림 8-12] 쇼핑몰 애플리케이션 구성도
 
@@ -1797,7 +1797,7 @@ Node left the swarm.
 
 
 ```shell
-mvn compile jib:dockerBuild
+$ mvn compile jib:dockerBuild
 ```
 
 
@@ -1807,6 +1807,7 @@ Docker 이미지를 빌드 한 후 Docker 이미지를 수행하면 다음을 �
 
 
 ```shell
+$ docker images
 REPOSITORY 						TAG 			IMAGE ID 		CREATED 		SIZE
 objectworld/customer-service 	0.0.1-SNAPSHOT 	a11824661356 	5 minutes ago 	148MB
 objectworld/order-service 		0.0.1-SNAPSHOT 	96d770656f1a 	5 minutes ago 	148MB
@@ -1821,176 +1822,107 @@ openzipkin/zipkin 				latest 			639cba1daeb3 	8 days ago 		147MB
 
 
 
-#### 8.6.2 도커에 마이크로서비스 패턴 컨테이너 배포하기
+#### 8.6.2 도커 환경에 네트워크 생성하기 
 
 
 
-이제 올바른 포트로 이미지를 실행해야 한다. 
+도커 내에 여러 컨테이너가 서로 통신하기 위해서는 네트워크가 생성되어야 한다. 컨테이너는 가상화된 하나의 호스트로 간주할 수 있기 때문에 기본적으로 컨테이너간 통신은 네트워크를 구성하여야 한다. [그림 8-13]은 도커에 의하여 가상 네트워크가 실제 물리적 네트워크에 매핑되는 개념을 표현한 것이다.
 
 
 
-##### 8.6.2.1 Config Server
+![그림 8-13](docker/%EA%B7%B8%EB%A6%BC%208-13-1711349170531.png)
+
+[그림 8-13] 컨테이너의 네트워크 가상화
 
 
+
+네트워크의 생성은 다음과 같이 도커 명령어에 의하여 생성할 수 있다.
 
 ```shell
-docker run --name config-server -d -p 8788:8788 objectworld/config-server:0.0.1-SNAPSHOT
+$ docker network create shopping
+375404c995912b65694e5935f54bdd0f6f36592a200295eb2911e8a5fd0b15d7
+```
+
+생성된 네트워크는 다음의 명령어로 조회할 수 있다.
+
+```shell
+$ docker network ls
+NETWORK ID     NAME       DRIVER    SCOPE
+f825e4cabcfb   bridge     bridge    local
+61e2da8ba088   host       host      local
+4a3dc1e878b9   none       null      local
+375404c99591   shopping   bridge    local
 ```
 
 
 
-##### 8.6.2.2 Eureka
+이 네트워크는 8.6.3 절과 8.6.4 절에서 생성되는 모든 컨테이너들이 공유하는 네트워크로 사용될 것이다.
+
+
+
+#### 8.6.3 도커에 마이크로서비스 패턴 컨테이너 배포하기
+
+
+
+이제 올바른 포트로 이미지를 실행해야 한다. 우리가 6장과 7장에서 개발한 서비스들의 접속 정보는 모두 호스트 정보가 localhost였다. 하지만 8장에서는 모두 컨테이너로 가상화되었으므로 컨테이너명으로 변경하여야 한다.
+
+
+
+##### 8.6.3.1 Config 서버
 
 
 
 ```shell
-docker run -d -p 8761:8761 objectworld/discovery-server:0.0.1-SNAPSHOT
+docker run --name config-service --network shopping -d \
+-p 8788:8788 objectworld/config-server:0.0.1-SNAPSHOT
 ```
 
 
 
-이것은 작동하지 않는다. 이 구성정보는 java.net.ConnectException을 발생시킨다.
+Config Server는 이제 외부 포트에 바인딩되었으므로 아래의 명령어로 조회할 수 있다.
 
 
 
 ```shell
-...
-INFO 1 --- [Thread-13] o.s.c.n.e.server.EurekaServerBootstrap : Eureka data center value eureka.datace\
-nter is not set, defaulting to default
-ERROR 1 --- [nfoReplicator-0] c.n.d.s.t.d.RedirectingEurekaHttpClient : Request execution error
-c.s.j.api.client.ClientHandlerException: java.net.ConnectException: Connection refused...
+$ curl http://localhost:8788/discovery-service/default
 ```
 
 
 
-Eureka에서 발생한 Exception은 프로그램이 Config-Server에 연결할 수 없기 때문으로, 원인은 매우 간단하다.
-
-
-
-시작시 Eureka는 application.yml의  spring.cloud.config.uri property에 정의 된 주소인 http://localhost:8788로 Config-Server를 요청한다.
-
-컨테이너 내부에서 어떻게 진행되는지 상상해 보자. 컨테이너화 된 Eureka 애플리케이션은 전용 컨테이너에 배정되었고, 그래서 컨테이너 내부에서 http://localhost:8788 주소를 요청할 때 localhost는 Eureka 컨테이너를 가리킨다. 그러나 Config-Server 애플리케이션은 Eureka의 현재 로컬 호스트가 아닌 자체 컨테이너에서 호스팅되어 있다.
-
-따라서 해결책은 Eureka와 다른 컨테이너를 http://localhost:8788이 아닌 Config-Server 의 Container 주소로 연결하는 것이다. 코드를 다시 작성하고 코드를 변경하지는 않을 것이므로 두려워할 필요 없다. 환경 변수를 사용하여 문제를 해결할 수 있는 스프링 부트의 뛰어난 기능이 있다.
-
-
-
-> 스프링 부트 애플리케이션에 속성 주입
->
-> 시스템 환경 변수를 사용하여 Property를 쉽게 전달 / 재정의 할 수 있다. 예를 들어 spring.cloud.config.uri Property을 전달 / 재정의하려면 SPRING_CLOUD_CONFIG_URI 환경 변수에 새 값을 할당하면 된다.
-> 따라서 스프링 부트 애플리케이션이 시작되면 환경 변수를 파싱하고 환경 변수에 정의 된 Element에 우선 순위를 부여한다. 따라서 bootstrap.yml 또는 애플리케이션.properties에 정의된 값도 환경 변수에서 다른 값이 전달 된 경우 환경변수를 반영하도록 고려된다.
-
-
-
-Docker는 컨테이너 생성시 환경 변수를 선언하는 기능을 제공한다.
+##### 8.6.3.2 Eureka
 
 
 
 ```shell
-docker run -e "env_var_name = env_var_value" image_name
+docker run --name discovery-service --network shopping -d \
+-p 8761:8761 objectworld/discovery-server:0.0.1-SNAPSHOT
 ```
 
 
 
-> 값을 지정하지 않고 환경 변수의 이름을 지정하면 이름이 지정된 변수의 현재 값이 컨테이너의 환경으로 전파된다.
-
-
-
-따라서 다음 명령을 사용하여 spring.cloud.config.uri 속성을 정의 할 수 있다.
+##### 8.6.3.3 API Gateway
 
 
 
 ```shell
-docker run -d \
--e SPRING_CLOUD_CONFIG_URI=http://CONFIG-SERVER-CONTAINER-IP:8788 \
--p 8761:8761 objectworld/eureka:0.0.1-SNAPSHOT
+docker run --name gateway-service --network shopping -d \
+-p 8222:8222 objectworld/api-gateway:0.0.1-SNAPSHOT
 ```
 
 
 
-다음 명령을 사용하여 CONFIG-SERVER-CONTAINER-IP의 값을 가져올 수 있다.
+##### 8.6.3.4 Zipkin
 
 
 
 ```shell
-$ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' config-server 
-
-172.17.0.2
+docker run --name zipkin --network shopping -d \
+-p 9411:9411 openzipkin/zipkin
 ```
 
 
 
-따라서 실제 명령은 다음과 같다.
-
-
-
-```shell
-docker run -d \
--e SPRING_CLOUD_CONFIG_URI=http://172.17.0.2:8788 \
--p 8761:8761 objectworld/eureka:0.0.1-SNAPSHOT
-```
-
-
-
-위의 방법도 괜찮지만 그렇게 좋지는 않다. 컨테이너는 계속해서 IP가 변경되며, 우리는 매번 IP를 찾지는 않는다.이것은 무거운 작업이며 생산적이지 않다.
-
-Docker는 Container Links와 같은 생태계의 성능과 생산성을 향상시키는 많은 훌륭한 기능을 제공한다.
-
-Container Links는 컨테이너가 상호 통신 할 수있는 환경 변수를 생성한다. 새 컨테이너를 실행하거나 기존 것을 편집 할 때 컨테이너 링크를 명시 적으로 지정할 수 있다.
-
-따라서 명령에서 이 Links를 사용할 수 있다.
-
-
-
-```shell
-docker run --name eureka \
-	--link config-server \ <1>
-	-d -e SPRING_CLOUD_CONFIG_URI=http://config-server:8788 \ <2>
-	-p 8761:8761 objectworld/eureka:0.0.1-SNAPSHOT
-```
-
-1. --link config-server = config-server:를 작성하는 것과 동일하게 예를 들어 우리의 Eureka 컨테이너에서 사용할 수있는 IP 주소등과 같은 config-server 컨테이너 정보를 만든다.
-2. SPRING_CLOUD_CONFIG_URI 속성은 Config Server 컨테이너 IP 주소로 확인되는 config-server라는 호스트를 가리킨다. 이것은 linking 메카니즘 통하여 가능해진다.
-3. --link 플래그는 Docker의 레거시 기능이다. 이 기능은 나중에 제거 될 수 있다. 이 방법을 사용하는 것이 절대적으로 필요하지 않는다면, --link를 사용하는 대신 두 컨테이너 간의 통신을 용이하게 한기 위한 사용자 정의 네트워크를 사용하는 것을 추천한다. 하나의 기능
-   사용자 정의 네트워크 기능은 --link를 사용한 Container간의 환경 변수 공유를 지원하지는 않는다. 그러나 볼륨과 같은 다른 메커니즘을 사용하여 보다 통제 된 방식으로 컨테이너 간의 환경 변수를 공유 할 수 있다.
-
-
-
-##### 8.6.2.3 API Gateway
-
-
-
-```shell
-docker run --name api-gateway \
-    --link config-server \
-    -d -e SPRING_CLOUD_CONFIG_URI=http://config-server:8788 \
-    -p 8222:8222 objectworld/api-gateway:0.0.1-SNAPSHOT
-```
-
-
-
-##### 8.6.2.4 Zipkin
-
-
-
-```shell
-docker run --name zipkin -d -p 9411:9411 openzipkin/zipkin
-```
-
-
-
-##### 8.6.2.5 Hystrix 대시 보드
-
-```shell
-docker run --name hystrix-dashboard \
-    --link config-server \
-    -d -e SPRING_CLOUD_CONFIG_URI=http://config-server:8788 \
-    -p 8988:8988 objectworld/hystrix-dashboard:0.0.1-SNAPSHOT
-```
-
-
-
-#### 8.6.3 도커에 쇼핑몰 애플리케이션 컨테이너 배포하기
+#### 8.6.4 도커에 쇼핑몰 애플리케이션 컨테이너 배포하기
 
 ####  
 
@@ -1998,48 +1930,183 @@ Product-Srevice, Order-Service 및 Customer-Service의 경우 Config Server에�
 
 
 
-##### 8.6.3.1 Product-Srevice
+##### 8.6.4.1 Product-Service
 
 
 
 ```shell
-docker run --name product-service \
-    --link config-server \
-    --link zipkin \
-    -d -e SPRING_CLOUD_CONFIG_URI=http://config-server:8788 \
-    -e SPRING_ZIPKIN_BASE-URL=http://zipkin:9411/ \
-    -p 9990:9990 objectworld/product-service:0.0.1-SNAPSHOT
+docker run --name product-service --network shopping -d \
+-p 9900:9900 objectworld/product-service:0.0.1-SNAPSHOT
 ```
 
 
 
-##### 8.6.3.2 Order-Service
+##### 8.6.4.2 Order-Service
 
 
 
 ```shell
-docker run --name order-service \
-    --link config-server \
-    --link zipkin \
-    -d -e SPRING_CLOUD_CONFIG_URI=http://config-server:8788 \
-    -e SPRING_ZIPKIN_BASE-URL=http://zipkin:9411/ \
-    -p 9991:9991 objectworld/order-service:0.0.1-SNAPSHOT
+docker run --name order-service --network shopping -d \
+-p 9901:9901 objectworld/order-service:0.0.1-SNAPSHOT
 ```
 
 
 
-##### 8.6.3.3 Customer-Service
+##### 8.6.4.3 Customer-Service
 
 
 
 ```shell
-docker run --name customer-service \
-    --link config-server \
-    --link zipkin \
-    -d -e SPRING_CLOUD_CONFIG_URI=http://config-server:8788 \
-    -e SPRING_ZIPKIN_BASE-URL=http://zipkin:9411/ \
-    -p 9992:9992 objectworld/customer-service:0.0.1-SNAPSHOT
+docker run --name customer-service --network shopping -d \
+-p 9902:9902 objectworld/customer-service:0.0.1-SNAPSHOT
 ```
+
+
+
+#### 8.6.5 도커 컴포즈로 한 번에 배포하기
+
+
+
+8.5.5 절에서 도커 스웜을 사용하여 네트워크 구성 및 복제본을 가진 서비스를 구성하는 방법을 살펴보았다. 물론 쇼핑몰 애플리케이션도 도커 스웜을 사용할 수 있겠지만 도커 컴포즈를 이용하여 복제본이나 추가 호스트가 없이 다수의 서비스만으로 구성된 쇼핑몰을 배포해보자.
+
+우선 마이크로서비스 패턴 프레임워크부터 배포한다.
+
+네트워크는 8.6.2 절에서 이미 생성한 shopping 네트워크를 사용할 것이다.
+
+
+
+도커 컴포즈 내용은 다음과 같다.
+
+ 
+
+```yaml
+services:
+  config-service:
+    image: objectworld/config-server:0.0.1-SNAPSHOT
+    ports:
+      - "8788:8788"
+    healthcheck:
+      test: curl --fail http://localhost:8788/discovery-service/default  || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    networks:
+      - shopping-net
+  discovery-service:
+    image: objectworld/discovery-server:0.0.1-SNAPSHOT
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-service:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:8761/eureka/v2/apps || exit 1
+      interval: 4s
+      timeout: 2s
+      retries: 3
+    networks:
+      - shopping-net
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin
+    extra_hosts: [ 'host.docker.internal:host-gateway' ]
+    ports:
+      - "9411:9411"
+    networks:
+      - shopping-net
+  gateway-service:
+    image: objectworld/api-gateway:0.0.1-SNAPSHOT
+    ports:
+      - "8222:8222"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - shopping-net
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+networks:
+  shopping-net:
+    name: shopping
+    external: true
+```
+
+
+
+도커 컴포즈로 구성된 서비스 배포 방법은 아래와 같이 docker-compose.yml 파일이 있는 디렉토리로 이동하여 docker-compose 명령을 실행하면 된다.
+
+
+
+``` sh
+$ cd /mnt/d/dev/msa/docker/chapter08.06-docker-spring-cloud-framework/docker/
+$ docker-compose up
+```
+
+
+
+다음은 3개로 분할된 마이크로서비스를 배포하기 위한 도커 컴포즈 구성 파일이다.
+
+
+
+```yaml
+services:
+  customer-service:
+    image: objectworld/customer-service:0.0.1-SNAPSHOT
+    ports:
+      - "8080"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - shopping-net
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+  product-service:
+    image: objectworld/product-service:0.0.1-SNAPSHOT
+    ports:
+      - "8080"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - shopping-net
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+  order-service:
+    image: objectworld/order-service:0.0.1-SNAPSHOT
+    ports:
+      - "8080"
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - shopping-net
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+networks:
+  shopping-net:
+    name: shopping
+    external: true
+```
+
+ 
+
+마이크로서비스 패턴 프레임워크와 동일하게 배포하면 된다.
+
+
+
+``` sh
+$ cd /mnt/d/dev/msa/docker/chapter08.07-docker-spring-cloud-shopping/docker/
+$ docker-compose up
+```
+
+
+
+물론 프레임워크와 서비스를 한꺼번에 배포할 수 있지만 이해를 돕기 위하여 구 개의 파일로 나누어 진행하였다. 하지만 외부 네트워크를 생성하여 사용하였으므로 문제는 없다. 
+
+만약 
 
 
 
