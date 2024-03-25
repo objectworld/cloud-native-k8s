@@ -171,7 +171,6 @@
 
 
 > 도커 머신은 도커 v1.12 이전의 맥 또는 윈도우즈에서 도커를 실행하는 유일한 방법이었다. 베타 프로그램 및 도커 v1.12을 시작하면서, 맥 또는 윈도우즈 용 도커는 네이티브 앱으로 사용할 수 있게 되었으며 도커 머신은 2021년 9월 27에 도커 데스크탑으로 대체되었다. 
->
 
 
 
@@ -198,8 +197,8 @@ WSL 2는 마이크로소프트 사에서 개발한 Windows Subsystem for Linux V
 - 윈도우내 WSL 2 기능 활성화
 - 윈도우 10 또는 11에서 WSL 2이 정상적으로 동작하기 위한 조건
   -  [Second Level Address Translation (SLAT)](https://en.wikipedia.org/wiki/Second_Level_Address_Translation)을 지원하는 64비트 프로세서
-  - 4GB 시스템 램 이상
-  - 바이오스 세팅에서 바이오스 레벨 하드웨어 가상화 지원이 활성화되어 있어야 함
+  -  4GB 시스템 램 이상
+  -  바이오스 세팅에서 바이오스 레벨 하드웨어 가상화 지원이 활성화되어 있어야 함
 
 
 
@@ -216,9 +215,9 @@ WSL 2는 마이크로소프트 사에서 개발한 Windows Subsystem for Linux V
 
   -  [Second Level Address Translation (SLAT)](https://en.wikipedia.org/wiki/Second_Level_Address_Translation)을 지원하는 64비트 프로세서
 
-  - 4GB 시스템 램 이상
+  -  4GB 시스템 램 이상
 
-  - 바이오스 세팅에서 바이오스 레벨 하드웨어 가상화 지원이 활성화되어 있어야 함
+  -  바이오스 세팅에서 바이오스 레벨 하드웨어 가상화 지원이 활성화되어 있어야 함
 
 
 
@@ -1058,8 +1057,8 @@ dockerfile-maven-plugin은 도커파일이 프로젝트 루트 폴더에 있어�
 > 스포티파이의 dockerfile-maven-plugin
 >
 > dockerfile-maven-plugin은 도커 이미지를 지정된 도커 레지스트리에 푸시하기 위하여  /.dockercfg 또는 /.docker/config.json 구성 파일에 저장된 인증 정보를 사용한다. 이러한 구성 파일은 도커 로그인을 통해 도커에 로그인할 때 생성된다. 
-> 
->메이븐 settings.xml 또는 pom.xml 파일에 인증 세부 정보를 지정할 수도 있다.
+>
+> 메이븐 settings.xml 또는 pom.xml 파일에 인증 세부 정보를 지정할 수도 있다.
 
 
 
@@ -1749,7 +1748,7 @@ Node left the swarm.
 
 
 
-![image-20230821124233014](../../SpringBootMSA/08.%20%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88%20%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0/%EA%B7%B8%EB%A6%BC%208-12.png)
+![image-20230821124233014](docker/%EA%B7%B8%EB%A6%BC%208-12-1711334496814.png)
 
 [그림 8-12] 쇼핑몰 애플리케이션 구성도
 

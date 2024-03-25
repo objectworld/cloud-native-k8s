@@ -2,7 +2,7 @@
 
 
 
-이전 장에서 우리는 애플리케이션을 배포하기 위해 도커를 사용하여 컨테이너로 애플리케션을 관리하는 방법을 학습하였다. 리눅스 컨테이너 기술 및 도커와 함께 컨테이너를 통한 애플리케이션을 관리하는 접근방식은 인프라스트럭처로부터 애플리케이션이 자유로워질 수 있는 새로운 패러다임으로 자리매김하게 되었다.
+8장에서 우리는 애플리케이션을 배포하기 위해 도커를 사용하여 컨테이너로 애플리케션을 관리하는 방법을 학습하였다. 리눅스 컨테이너 기술 및 도커와 함께 컨테이너를 통한 애플리케이션을 관리하는 접근방식은 인프라스트럭처로부터 애플리케이션이 자유로워질 수 있는 새로운 패러다임으로 자리매김하게 되었다.
 
 컨테이너는 가상머신과 유사하지만 격리 속성을 완화하여 애플리케이션 간에 운영체제(OS)를 공유한다. 그러므로 컨테이너는 기동 시간 및 자원 효율성면에서 물리적 서버와 가상머신의 장점을 모두 채택했다고 볼 수 있다. 가상머신과 마찬가지로 컨테이너에는 자체 파일 시스템, CPU 점유율, 메모리, 프로세스 공간 등이 있다. 기본 인프라와의 종속성을 끊었기 때문에, 클라우드나 운영체제 배포본에 모두 이식할 수 있다.
 
@@ -130,7 +130,7 @@
 
 
 
-![](kubernetes/%EA%B7%B8%EB%A6%BC%209-1.png)
+![](kubernetes/%EA%B7%B8%EB%A6%BC%209-1-1711334647404.png)
 
 [그림 9-1] 쿠버네티스 컴포넌트
 
@@ -258,6 +258,170 @@
 
 
 
+
+
+#### 9.3.1 도커 쿠버네티스
+
+
+
+도커 데스크탑에서 쿠버네티스를 설치할 수 있다. 도커 내에서 쿠버네티스를 설치하는 경우 설치는 간단하지만 시스템 리소스가 많이 소요 된다. 또한 대시보드가 포함되어 있지 않기 때문에 별도로 대시보드를 설치하여야 한다.
+
+
+
+##### 9.3.1.1 도커 쿠버네티스 설치
+
+
+
+1. From the Docker Dashboard, select the **Settings**.
+2. Select **Kubernetes** from the left sidebar.
+3. Next to **Enable Kubernetes**, select the checkbox.
+4. Select **Apply & Restart** to save the settings and then select **Install** to confirm. This instantiates images required to run the Kubernetes server as containers, and installs the `/usr/local/bin/kubectl` command on your machine.
+
+
+
+By default, Kubernetes containers are hidden from commands like `docker ps`, because managing them manually is not supported. Most users do not need this option. To see these internal containers, select **Show system containers (advanced)**.
+
+
+
+> 도커 테스크탑은 쿠버네티스 클러스터를 업데이트하지 않는다. 만약 쿠버네티스 클러스터를 최신 버전으로 업그레이드하고자 한다면 "Reset Kubernetes Cluster" 버튼을 통하여 다시 설치하여야 한다.
+
+
+
+![그림 9-2](kubernetes/%EA%B7%B8%EB%A6%BC%209-2-1711334647405.png)
+
+[그림 9-2] 도커 데스크탑 쿠버네티스 설치
+
+
+
+설치가 완료되면 도커 데스크탑은 자동으로 쿠버네티스를 시작한다. 설치가 잘되었는지 `kubectl version` 명령어로 확인할 수 있다.
+
+
+
+```sh
+$ kubectl version --output yaml
+clientVersion:
+  buildDate: "2023-05-17T14:20:07Z"
+  compiler: gc
+  gitCommit: 7f6f68fdabc4df88cfea2dcf9a19b2b830f1e647
+  gitTreeState: clean
+  gitVersion: v1.27.2
+  goVersion: go1.20.4
+  major: "1"
+  minor: "27"
+  platform: linux/amd64
+```
+
+
+
+
+
+```sh
+$ kubectl config get-contexts
+CURRENT   NAME             CLUSTER          AUTHINFO         NAMESPACE
+*         docker-desktop   docker-desktop   docker-desktop
+```
+
+
+
+```sh
+$ kubectl get nodes
+NAME             STATUS   ROLES           AGE     VERSION
+docker-desktop   Ready    control-plane   5m21s   v1.27.2
+```
+
+
+
+##### 9.3.1.2 쿠버네티스 대시보드 설치
+
+
+
+도커 쿠버네티스에는 대시보드가 설치되어 있지 않기 때문에 쿠버테니스 사이트에 있는 가이드를 이용하여 대시보드를 설치한다.
+
+* https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+
+ 
+
+가이드 페이지를 보면 아래와 같은 원격지에 정의되어 있는 recommended.yaml을 통하여 대시보드를 설치한다.
+
+```sh
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+```
+
+
+
+설치가 완료되었으면 다음과 같이 서비스 목록을 확인할 수 있다. 
+
+
+
+```sh
+$ kubectl get svc --all-namespaces
+NAMESPACE              NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+default                kubernetes                  ClusterIP   10.96.0.1        <none>        443/TCP                  65m
+kube-system            kube-dns                    ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP   65m
+kubernetes-dashboard   dashboard-metrics-scraper   ClusterIP   10.108.29.148    <none>        8000/TCP                 27m
+kubernetes-dashboard   kubernetes-dashboard        ClusterIP   10.100.193.200   <none>        443/TCP                  27m
+
+```
+
+
+
+이제  대시보드를 외부 포트에 노출시키기 위하여 프록시를 기동시킨다.
+
+
+
+```sh
+$ kubectl proxy --port=8001 --address=172.30.125.196 --accept-hosts='^*$'
+```
+
+
+
+이제 가이드에 있는 접속 URL을 이용하여 브라우저에 접속하면 [그림 9-3]과 같은 대시보드 화면이 표시된다.
+
+* http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+
+
+##### 9.3.13 쿠버네티스 대시보드 삭제
+
+
+
+쿠버네티스 대시보드를 삭제하기 위해서는 가이드에 포함된 설치 yaml 파일을 이용하여 명령어를 apply에서 delete로 바꿔서 실행하면 삭제된다.
+
+
+
+```sh
+$ kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+```
+
+
+
+대시보드가 삭제되었는지 서비스 목록을 확인하면 다음과 같다.
+
+
+
+```sh
+$ kubectl get svc --all-namespaces
+NAMESPACE     NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+default       kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  68m
+kube-system   kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   68m
+```
+
+
+
 #### 9.3.1 Minikube
 
 
@@ -335,7 +499,7 @@ $ minikube console
 
 
 
-![Kubernetes Dashboard (Web UI)](kubernetes/Kubernetes%20Dashboard%20(Web%20UI).PNG)
+![Kubernetes Dashboard](kubernetes/Kubernetes%20Dashboard%20(Web%20UI).PNG)
 
 
 
@@ -370,7 +534,7 @@ K3s 리눅스 재단의 Rancher 에서 만든 kubernetes 경량화 제품이다.
 - 에이전트 노드는 데이터스토어 또는 컨트롤 플레인 구성 요소 없이 `k3s agent` 명령을 실행하는 호스트로 정의됩니다.
 - 서버와 에이전트 모두 kubelet, 컨테이너 런타임 및 CNI를 실행합니다. 에이전트 없는 서버 실행에 대한 자세한 내용은 [고급 옵션](https://docs.k3s.io/kr/advanced#running-agentless-servers-experimental) 설명서를 참조하세요.
 
-[![Deploying, Securing Clusters in 8 minutes with Kubernetes](https://github.com/ssongman/ktds-edu-k8s-istio/raw/main/kubernetes/kubernetes.assets/k3s_falco_sysdig-02-k3s_arch.png)](https://github.com/ssongman/ktds-edu-k8s-istio/blob/main/kubernetes/kubernetes.assets/k3s_falco_sysdig-02-k3s_arch.png)
+[![Deploying, Securing Clusters in 8 minutes with Kubernetes](kubernetes/k3s_falco_sysdig-02-k3s_arch.png)](https://github.com/ssongman/ktds-edu-k8s-istio/blob/main/kubernetes/kubernetes.assets/k3s_falco_sysdig-02-k3s_arch.png)
 
 - k3s 에서는 containerd 라는 제품을 사용함
 
@@ -561,30 +725,29 @@ K3d CLI는 새 K3s 클러스터를 자동으로 생성하고 시작하는 `clust
 
 
 ```sh
-$ k3d cluster create --servers 1 --agents 1 --port "8888:80@loadbalancer" --port "8889:443@loadbalancer"
-INFO[0000] portmapping '8888:80' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy]
-INFO[0000] portmapping '8889:443' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy]
+$k3d k3d cluster create
 INFO[0000] Prep: Network
 INFO[0000] Created network 'k3d-k3s-default'
 INFO[0000] Created image volume k3d-k3s-default-images
 INFO[0000] Starting new tools node...
-INFO[0000] Starting Node 'k3d-k3s-default-tools'
 INFO[0001] Creating node 'k3d-k3s-default-server-0'
-INFO[0001] Creating node 'k3d-k3s-default-agent-0'
-INFO[0001] Creating LoadBalancer 'k3d-k3s-default-serverlb'
-INFO[0002] Using the k3d-tools node to gather environment information
-INFO[0002] Starting new tools node...
-INFO[0003] Starting Node 'k3d-k3s-default-tools'
-INFO[0004] Starting cluster 'k3s-default'
-INFO[0004] Starting servers...
-INFO[0005] Starting Node 'k3d-k3s-default-server-0'
-INFO[0010] Starting agents...
-INFO[0010] Starting Node 'k3d-k3s-default-agent-0'
-INFO[0016] Starting helpers...
-INFO[0016] Starting Node 'k3d-k3s-default-serverlb'
-INFO[0024] Injecting records for hostAliases (incl. host.k3d.internal) and for 4 network members into CoreDNS configmap...
-INFO[0027] Cluster 'k3s-default' created successfully!
-INFO[0027] You can now use it like this:
+INFO[0001] Pulling image 'ghcr.io/k3d-io/k3d-tools:5.6.0'
+INFO[0003] Pulling image 'docker.io/rancher/k3s:v1.27.4-k3s1'
+INFO[0007] Starting Node 'k3d-k3s-default-tools'
+INFO[0032] Creating LoadBalancer 'k3d-k3s-default-serverlb'
+INFO[0033] Pulling image 'ghcr.io/k3d-io/k3d-proxy:5.6.0'
+INFO[0044] Using the k3d-tools node to gather environment information
+INFO[0044] Starting new tools node...
+INFO[0045] Starting Node 'k3d-k3s-default-tools'
+INFO[0046] Starting cluster 'k3s-default'
+INFO[0046] Starting servers...
+INFO[0046] Starting Node 'k3d-k3s-default-server-0'
+INFO[0051] All agents already running.
+INFO[0051] Starting helpers...
+INFO[0051] Starting Node 'k3d-k3s-default-serverlb'
+INFO[0058] Injecting records for hostAliases (incl. host.k3d.internal) and for 3 network members into CoreDNS con  figmap...
+INFO[0060] Cluster 'k3s-default' created successfully!
+INFO[0060] You can now use it like this:
 kubectl cluster-info
 ```
 
@@ -607,9 +770,9 @@ K3d는 새 클러스터에 대한 연결을 포함하도록 Kubernetes 구성 �
 
 ```sh
 $ kubectl cluster-info
-Kubernetes control plane is running at https://0.0.0.0:44417
-CoreDNS is running at https://0.0.0.0:44417/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-Metrics-server is running at https://0.0.0.0:44417/api/v1/namespaces/kube-system/services/https:metrics-server:https/proxy
+Kubernetes control plane is running at https://0.0.0.0:34093
+CoreDNS is running at https://0.0.0.0:34093/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Metrics-server is running at https://0.0.0.0:34093/api/v1/namespaces/kube-system/services/https:metrics-server:https/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
@@ -634,10 +797,10 @@ k3d-k3s-default-server-0   Ready    control-plane,master   7m36s   v1.27.4+k3s1
 
 ```
 $ docker ps
-CONTAINER ID   IMAGE                            COMMAND                  CREATED         STATUS         PORTS                             NAMES
-48cd0608c9fb   ghcr.io/k3d-io/k3d-tools:5.5.2   "/app/k3d-tools noop"    3 minutes ago   Up 3 minutes                                     k3d-k3s-default-tools
-ee5f7593e18e   ghcr.io/k3d-io/k3d-proxy:5.5.2   "/bin/sh -c nginx-pr…"   3 minutes ago   Up 3 minutes   80/tcp, 0.0.0.0:44417->6443/tcp   k3d-k3s-default-serverlb
-6251ed2c64cc   rancher/k3s:v1.27.4-k3s1         "/bin/k3s server --t…"   4 minutes ago   Up 3 minutes                                     k3d-k3s-default-server-0
+CONTAINER ID   IMAGE                            COMMAND                  CREATED         STATUS              PORTS                             NAMES
+d2c06a54bea7   ghcr.io/k3d-io/k3d-tools:5.6.0   "/app/k3d-tools noop"    2 minutes ago   Up 2 minutes                                          k3d-k3s-default-tools
+2b53b147799a   ghcr.io/k3d-io/k3d-proxy:5.6.0   "/bin/sh -c nginx-pr…"   2 minutes ago   Up About a minute   80/tcp, 0.0.0.0:34093->6443/tcp   k3d-k3s-default-serverlb
+78a005933b6e   rancher/k3s:v1.27.4-k3s1         "/bin/k3s server --t…"   2 minutes ago   Up 2 minutes                                          k3d-k3s-default-server-0
 ```
 
 * k3d-tools : K3d의 기능을 제공하는 컨테이너 이미지 
@@ -768,7 +931,7 @@ $ k3d cluster create --registry-create demo-registry
 
 
 
-이렇게 하면 demo-registry라는 레지스트리로 새 클러스터가 시작됩니다. 레지스트리는 자체 도커 컨테이너에서 실행된다. `docker ps -f name=-registry`를 실행하여 레지스트리가 노출된 포트 번호를 찾을 수 있다. 여기서 ``는 클러스터의 이름입니다. 이미지를 이 레지스트리로 푸시하면 클러스터의 파드에서 이미지에 액세스할 수 있다.
+이렇게 하면 demo-registry라는 레지스트리로 새 클러스터가 시작된다. 레지스트리는 자체 도커 컨테이너에서 실행된다. `docker ps -f name=-registry`를 실행하여 레지스트리가 노출된 포트 번호를 찾을 수 있다. 여기서 ``는 클러스터의 이름입니다. 이미지를 이 레지스트리로 푸시하면 클러스터의 파드에서 이미지에 액세스할 수 있다.
 
 
 
@@ -1122,7 +1285,7 @@ $ kubectl get deployment
 
 
 
-수평으로 확장할 파드를 정의하기위한 프레임 워크이다. 복제 컨트롤러는 복제 할 파드 정의를 포함하고 여기에서 생성 된 파드를 다른 노드로 스케쥴링할 수 있다.
+수평으로 확장할 파드를 정의하기위한 프레임워크이다. 복제 컨트롤러는 복제 할 파드 정의를 포함하고 여기에서 생성 된 파드를 다른 노드로 스케쥴링할 수 있다.
 
 복제 컨트롤러의 예제는 다음과 같다. 
 
@@ -1438,7 +1601,7 @@ kubectl get service 또는 kubectl get svc
 
 
 
-![image-20230820153204684](kubernetes/%EA%B7%B8%EB%A6%BC%209-3.png)
+![image-20230820153204684](kubernetes/%EA%B7%B8%EB%A6%BC%209-3-1711334647405.png)
 
 [그림 9-3] 인그레스를 통한 외부 트래픽의 클러스터 전달
 
@@ -1589,7 +1752,149 @@ kubectl get secret
 
 
 
-### 9.5 쿠버네티스 적용
+### 9.5 쿠버네티스 샘플 컨테이너 실행
+
+
+
+이제 8.5절에서 생성한 도커 이미지를 쿠버네티스에서 실행해보자.
+
+
+
+#### 9.5.1 네임스페이스 생성하기
+
+
+
+네임스페이스는 쿠버네티스에서 서비스를 물리적/논리적으로 구분하는 도구이다. 쇼핑 전용 네임스페이스를 생성해보자.
+
+
+
+```sh
+$ kubectl create ns objectworld
+```
+
+
+
+#### 9.5.1 Aias 정의
+
+
+
+쿠버네티스 명령어인 kubectl 명령을 편리하게 사용하기 위하여 아래와 같이 alias를 정의한다.
+
+
+
+```sh
+$ cat > ~/env
+alias k='kubectl'
+alias ku='kubectl -n objectworld'
+
+Ctrl+D
+
+
+## alias 를 적용하려면 source 명령 수행
+$ source ~/env
+```
+
+ 
+
+#### 9.5.1 쿠버네티스 명령어에 의하여 컨테이너 배포하기
+
+
+
+kubectl CLI를 이용하여 컨테이너를 생성해보자. 우리는 이미 도커 허브에 빌드된 컨테이너를 등록한 이미지를 사용할 것이다.
+
+만약 도커에 로그인하지 않았다면 8.5.4.1절에서 설명한 방법과 같이 도커 허브에 로그인하기 바란다. 물론 로컬에 별도의 리포지토리를 구성하는 방법도 있다.
+
+
+
+![image-20240325010037328](kubernetes/%EA%B7%B8%EB%A6%BC%209-4-1711334647405.png)
+
+[그림 9-4] 도커 허브에 저장된 샘플 애플리케이션 
+
+
+
+```sh
+$ ku create deploy hello --image=objectworld/docker-hello
+deployment.apps/hello created
+
+$ ku get pod
+NAME                     READY   STATUS    RESTARTS   AGE
+hello-84d46cfcf4-vpmdk   1/1     Running   0          5m8s
+```
+
+
+
+#### 9.5.2 쿠버네티스 컨테이너 테스트하기
+
+
+
+쿠버네티스에 배포된 애플리케이션은 아직 외부에서 접근할 수 없다. 따라서 또 하나의 컨테이너를 설치하여 내부 네트워크에서 테스트해보자.
+
+우선 컨테이너 내부에 cURL 실행이 가능한 이미지를 배포한다. 
+
+
+``` sh
+$ ku run curltest --image=curlimages/curl -- sleep 365d5d
+pod/curltest created
+
+# 제대로 설치되었는지 테스트
+$ ku exec -it curltest -- curl -h
+Usage: curl [options...] <url>
+ -d, --data <data>          HTTP POST data
+ -f, --fail                 Fail fast with no output on HTTP errors
+ -h, --help <category>      Get help for commands
+ -i, --include              Include protocol response headers in the output
+ -o, --output <file>        Write to file instead of stdout
+ -O, --remote-name          Write output to a file named as the remote file
+ -s, --silent               Silent mode
+ -T, --upload-file <file>   Transfer local FILE to destination
+ -u, --user <user:password> Server user and password
+ -A, --user-agent <name>    Send User-Agent <name> to server
+ -v, --verbose              Make the operation more talkative
+ -V, --version              Show version number and quit
+
+This is not the full help, this menu is stripped into categories.
+Use "--help category" to get an overview of all categories.
+For all options use the manual or "--help all".
+```
+
+
+
+네임스페이스에 설치된 컨테이너 파드 목록을 자세히 살펴보면 IP 주소를 확인할 수 있으며 curltest 컨테이너를 이용하여 쿠버네티스 클러스터 내부에서 cURL을 실행해 보자.
+
+```sh
+$ ku get pods -o wide
+NAME                     READY   STATUS    RESTARTS   AGE     IP           NODE                       NOMINATED NODE   READINESS GATES
+hello-84d46cfcf4-vpmdk   1/1     Running   0          5m30s   10.42.0.13   k3d-k3s-default-server-0   <none>           <none>
+curltest                 1/1     Running   0          43s     10.42.0.14   k3d-k3s-default-server-0   <none>           <none>
+
+$ ku exec -it curltest -- curl 10.42.0.13:8080/hello
+Hello ObjectWorld!
+```
+
+
+
+컨테이너 이미지를 우분투 기반으로 만들었으니 cURL이 있을 것이다. 컨테이너 내부에서 실행해 볼 수도 있다.
+
+
+
+```sh
+$ ku exec -it hello-84d46cfcf4-vpmdk -- curl -i localhost:8080/hello
+HTTP/1.1 200
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 19
+Date: Sun, 24 Mar 2024 16:49:07 GMT
+
+Hello ObjectWorld!
+
+```
+
+
+
+이처럼 명령어를 통하여 쿠버네티스에 컨테이너를 배포할 수 있지만 대부분 YAML을 이용하여 쿠버네티스 구성정보를 관리하고, 이를 바탕으로 kubectl apply 명령어나 커스터마이즈(kustomize), Helm을 이용한다.
+
+
+
+### 9.6 쿠버네티스 적용
 
 
 
@@ -1599,7 +1904,7 @@ kubectl get secret
 
 
 
-#### 9.5.1 애플리케이션을 쿠버네티스 형식으로 변경하기
+#### 9.6.1 애플리케이션을 쿠버네티스 형식으로 변경하기
 
 
 
@@ -1640,7 +1945,7 @@ Kubernetes ConfigMap 및 Secret 객체에서 이러한 값들을 추출한다.
 
 
 
-##### 9.5.1.1 구성 맵 생성
+##### 9.6.1.1 구성 맵 생성
 
 
 
@@ -1679,7 +1984,7 @@ metadata:
 
 
 
-##### 9.5.1.2 시크릿 생성
+##### 9.6.1.2 시크릿 생성
 
 
 
@@ -1729,7 +2034,7 @@ metadata:
 
 
 
-##### 9.5.1.3 쿠버네티스에 PostgreSQL 배포
+##### 9.6.1.3 쿠버네티스에 PostgreSQL 배포
 
 
 
@@ -1851,7 +2156,7 @@ replicaset.apps/postgres-7dd49bb44b   1         1         1       9s
 
 
 ```sh
-$ kubectl exec -it postgres-7dd49bb44b-92qth --  psql -h localhost -U postgres --password -p 5432 shopping
+$ kubectl exec -it postgres-7dd49bb44b-tg9dm --  psql -h localhost -U postgres --password -p 5432 shopping
 ```
 
 
@@ -2004,7 +2309,7 @@ status:
 우리는 이미 spring.datasource.url 속성에서 포트를 언급했다.
 
 -  포트를 동적으로 지정하기 위해 Kubernetes의 강력한 기능을 사용한다면 어떻게 생각하는가?
-- 좋다,하지만 어떻게? :)
+-  좋다,하지만 어떻게? :)
 
 
 
@@ -2079,7 +2384,7 @@ kubectl create configmap app-config
 
 
 
-##### 9.5.1.4 스프링 클라우드 구버네티스 란?
+##### 9.6.1.4 스프링 클라우드 구버네티스 란?
 
 
 
@@ -2118,381 +2423,40 @@ Kubernetes ConfigMap이 스프링 부트 Configuration의 대체 속성 소스�
 
 
 
-이게 전부다. 스프링 클라우드 Kubernetes는 애플리케이션에 올바르게 통합되었다. 애플리케이션을 Kubernetes에 배포할 때에는, ConfigMap app-config에 저장된 애플리케이션.properties를 사용할 것이다.
+이게 전부다. 스프링 클라우드 Kubernetes는 애플리케이션에 올바르게 통합되었다. 애플리케이션을 Kubernetes에 배포할 때에는, ConfigMap app-config에 저장된 application.properties를 사용할 것이다.
 
 배포는 어떻게 하는가?
 
 
 
-##### 9.5.1.5 쿠버네티스에 배포
-
-
-
-배포, 전체 내용을 다루자면 많은 챕터를 가질 수있는 긴 이야기지만 여기서는 짧고 간단히 다뤄보겠다.
-
-정의에 따르면, 쿠버네티스는 컨테이너 오케스트레이션 솔루션이다. 따라서 애플리케이션을 쿠버네티스에 배포한다는 것은 다음을 의미한다.
-
-- 애플리케이션 컨테이너화 : 애플리케이션을 포함하는 이미지 만들기
-- 배포 리소스 준비 (Deployment, ReplicaSet 등 ...)
-- 쿠버네티스에 컨테이너 배포
-
-이 단계를 수행하는 데 시간이 걸릴 수 있다. 이 프로세스를 자동화하려고해도, 구현하는 데 오랜 시간이 걸리며 애플리케이션에 대한 모든 케이스와 변수들을 다루는 데 더 많은 시간이 걸린다.
-
-이러한 작업이 너무 무거 우므로이 모든 작업을 쉽게 수행 할 수있는 도구가 필요한다.
-
-이를 위한 매우 강력한 도구 인 Fabric8-Maven-Plugin이 있다.
-
-![Fabric8 Logo](kubernetes/Fabric8%20Logo.PNG)
-
-Fabric8-Maven-Plugin은 Docker, Kubernetes 및 OpenShift를 위한 Java 애플리케이션을 빌드하고 배포하기 위한 원스톱 상점(One-Stop-Shop)이다. Java 애플리케이션을 Kubernetes 및 OpenShift로 전달해준다. Maven과의 긴밀한 통합을 제공하고 이미 제공된 빌드 Configuration의 이점을 제공한다. 이는 세 가지 작업에 중점을 두고 있다.
-
-- Docker 이미지 빌드
-- OpenShift 및 Kubernetes 리소스 생성
-- Kubernetes 및 OpenShift에 애플리케이션 배포
-
-이 플러그인은 개발자 대신 모든 무거운 작업을 수행한다.
-
-이 플러그인은 매우 유연하게 Configure할 수 있으며 다음을 생성하기 위한 여러 Configuration 모델을 지원한다.
-
-- 의견이 있는 기본값이 미리 선택되는 빠른 램프 업을위한 **Zero Configuration**
-- XML 구문의 플러그인 Configuration을 가진 **Inline Configuration**
-- 플러그인으로 보강 된 실제 Deployment Descriptor의 **External Configuration** 템플릿
-- Docker Compose 파일을 제공하고 docker compose deployment로 Kubernetes / OpenShift 클러스터에 배포를 수행하는 **Docker Compose Configuration**
-
-프로젝트에서 fabric8-maven-plugin을 활성화하기 위하여  pom.xml plugin 섹션에 다음을 추가한다.
-
-```xml
-<plugin>
-    <groupId>io.fabric8</groupId>
-    <artifactId>fabric8-maven-plugin</artifactId>
-    <version>3.5.41</version>
-</plugin>
-```
-
-이제 fabric8-maven-plugin을 사용하여 빌드 또는 배포하기 위하여 Kubernetes 클러스터가 시작 및 실행되어 있는지 확인한다.
-
-fabric8-maven-plugin은 원활한 Java 개발자 경험을 제공하기 위하여 다양한 종류의 goal들을 지원한다. 이러한 goal들은 다음과 같이 분류될 수 있다.
-
-- 빌드 goal은 Docker 이미지와 같은 Kubernetes 빌드 아티팩트를 만들고 관리하는 데 사용된다.
-  - fabric8:build : Docker 이미지 빌드
-  - fabric8:resource : Kubernetes 리소스 descriptor 생성
-  - fabric8:push : 레지스트리에 Docker 이미지 푸시
-  - fabric8:apply : 실행중인 클러스터에 리소스 적용
-- 개발 goal은 개발 클러스터에 리소스 descriptor를 배포하는 데 사용된다.
-  - fabric8:run : 전체 개발 워크플로우 사이클(fabric8:resource → fabric8:build → fabric8:apply)을 foreground로 실행한다.
-  - fabric8:deploy : 리소스 descriptor를 생성 한 후 앱을 빌드한 다음에 클러스터에 배포한다. Background에서 실행된다는 점을 제외하면 'fabric8 : run'과 동일하다.
-  - fabric8:undeploy : 클러스터에서 리소스 descriptor를 배포 해제하고 제거한다.
-  - fabric8:watch : 재구축 및 재시작 수행 감시
-
-Maven 라이프사이클 단계에서 Goal을 통합하려는 경우 아래와 같이 쉽게 수행 할 수 있다.
-
-```xml
-<plugin>
-    <groupId>io.fabric8</groupId>
-    <artifactId>fabric8-maven-plugin</artifactId>
-    <version>3.5.41</version>
-    <!-- This block will connect fabric8:resource and fabric8:build to lifecycle phases -->
-    <executions>
-        <execution>
-        <id>fmp</id>
-        <goals>
-            <goal>resource</goal>
-            <goal>build</goal>
-        </goals>
-        </execution>
-    </executions>
-</plugin>
-```
-
-> Note
-> fabric8-maven-plugin을 f8mp로 약어 표현하였다.
-
-예를 들어 mvn clean install을 수행하면 플러그인이 도커 이미지를 빌드하고 ${basedir}/target/classes/META-INF /fabric8/kubernetes 디렉토리에 Kubernetes 리소스 descriptor를 생성한다.
-
-생성 된 리소스 descriptor를 확인해 보자.
-
-> Warning
-> 잠깐만! ConfigMaps를 스프링 부트 애플리케이션에 전달할 것이라고 말했는데 어디에 있지?
-
-그렇다. 리소스 설명자를 생성하기 전에 이를 f8mp에 알려야한다.
-
-f8mp는이 작업을 쉽게 수행 할 수 있다. 플러그인은 일부 리소스Fragments을 처리 할 수 있다. 그것은
-src/main/fabric8 디렉토리에있는 YAML 코드 조각을 의미한다. 각 리소스는 리소스 description의 골격을 포함한 자체 파일이다. 플러그인이 리소스를 가져와서 Enrich한 다음 모든 데이터를 결합한다. 이 Desciptor 파일들 내에서 모든 Kubernetes 기능을 자유롭게 사용할 수 있다.
-
-본 샘플에서는 스프링 부트 애플리케이션이 실행될 Pod에 대한 환경 변수의 Configuration을 Resource Fragment에 전달할 것이다. 여기서는 Deployment에 대한 Fragment를 사용할 것이며 다음과 같이 표현된다. 
-
-```yaml
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: ${project.artifactId}
-  namespace: default
-spec:
-  template:
-    spec:
-      containers:
-        - name: ${project.artifactId}
-          env:
-          - name: POSTGRES_SERVICE
-            valueFrom:
-              configMapKeyRef:
-                name: postgres-config
-                key: postgres.service.name
-          - name: POSTGRES_DB_NAME
-            valueFrom:
-              configMapKeyRef:
-                name: postgres-config
-                key: postgres.db.name
-          - name: POSTGRES_DB_USER
-            valueFrom:
-              secretKeyRef:
-                name: db-security
-                key: db.user.name
-          - name: POSTGRES_DB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: db-security
-                key: db.user.password
-```
-
-- 배포 및 컨테이너의 이름
-- ConfigMap과 Secret에서 만들고 채우는 환경 변수
-
-이제 f8mp가 리소스 설명자를 생성하려고 할 때 이 리소스 Fragment를 찾아서, 다른 데이터와 결합을 한다. 결과 Output은 이미 제공한 Fragment들과 일치한다.
-
-자 이제 mvn clean install을 실행해보자.
-
-```shell
-[INFO] Scanning for projects...
-[INFO]
-[INFO] ------------------------------------------------------------------------
-[INFO] Building MyBoutique 0.0.1-SNAPSHOT
-[INFO] ------------------------------------------------------------------------
-[INFO]
-...
-[INFO]
-[INFO] --- fabric8-maven-plugin:3.5.41:resource (fmp) @ myboutique -
-[INFO] F8: Running in Kubernetes mode
-[INFO] F8: Running generator spring-boot
-[INFO] F8: spring-boot: Using Docker image fabric8/java-jboss-openjdk8-jdk:1.3 as base / builder
-[INFO] F8: using resource templates from /Users/n.lamouchi/MyBoutique/src/main/fabric8
-[INFO] F8: fmp-service: Adding a default service 'myboutique' with ports [8080]
-[INFO] F8: spring-boot-health-check: Adding readiness probe on port 8080, path='/health',
-scheme='HTTP', with initial delay 10 seconds
-[INFO] F8: spring-boot-health-check: Adding liveness probe on port 8080, path='/health',
-scheme='HTTP', with initial delay 180 seconds
-[INFO] F8: fmp-revision-history: Adding revision history limit to 2
-[INFO] F8: f8-icon: Adding icon for deployment
-[INFO] F8: f8-icon: Adding icon for service
-[INFO] F8: validating ../classes/META-INF/fabric8/openshift/myboutique-svc.yml resource
-[INFO] F8: validating ../classes/META-INF/fabric8/openshift/myboutique-deploymentconfig.yml resource
-[INFO] F8: validating ../classes/META-INF/fabric8/openshift/myboutique-route.yml resource
-[INFO] F8: validating ../classes/META-INF/fabric8/kubernetes/myboutique-deployment.yml resource
-[INFO] F8: validating ../classes/META-INF/fabric8/kubernetes/myboutique-svc.yml resource
-[INFO]
-...
-[INFO]
-[INFO] --- fabric8-maven-plugin:3.5.41:build (fmp) @ myboutique -
-[INFO] F8: Building Docker image in Kubernetes mode
-[INFO] F8: Running generator spring-boot
-[INFO] F8: spring-boot: Using Docker image fabric8/java-jboss-openjdk8-jdk:1.3 as base / builder
-[INFO] Copying files to ../docker/nebrass/myboutique/snapshot-180XX/build/maven
-[INFO] Building tar: ../docker/nebrass/myboutique/snapshot-180XX/tmp/docker-build.tar
-[INFO] F8: [nebrass/myboutique:snapshot-180XX] "spring-boot":
-Created docker-build.tar in 283 milliseconds
-[INFO] F8: [nebrass/myboutique:snapshot-180XX] "spring-boot":
-Built image sha256:61171
-[INFO] F8: [nebrass/myboutique:snapshot-180XX] "spring-boot":
-Tag with latest
-[INFO]
-...
-[INFO]
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 30.505 s
-[INFO] Finished at: 2018-03-27T17:48:29+02:00
-[INFO] Final Memory: 70M/721M
-[INFO] ------------------------------------------------------------------------
-```
-
-- 감지 된 Configuration을 기반으로 리소스 설명자 생성 : 기존 Actuator Endpoint와 함께 포트 8080을 사용하는 스프링 부트애플리케이션.
-
-- Kubernetes 모드로 Docker 이미지 빌드 (Openshift S2I Mechanism을 사용하여 빌드하는 Openshift 모드와 달리 로컬에서 수행)
-
-프로젝트를 빌드 한 후에는 ${basedir}/target/classes/META-INF/fabric8/kubernetes 디렉토리에 아래와 같은 파일들이 있다.
-
-- my-school-deployment.yml
-- my-school-svc.yml
-
-
-
-배포를 확인해 보겠다.
-
-
-
-```yaml
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  annotations:
-    fabric8.io/git-commit: 0120b762d7e26994e8b01d7e85f8941e5d095130
-    fabric8.io/git-branch: master
-    fabric8.io/scm-tag: HEAD
-...
-  labels:
-    app: myboutique
-    provider: fabric8
-    version: 0.0.1-SNAPSHOT
-    group: com.onepoint.labs
-  name: myboutique
-  namespace: default
-spec:
-  replicas: 1
-  revisionHistoryLimit: 2
-  selector:
-    matchLabels:
-      app: myboutique
-      provider: fabric8
-      group: com.onepoint.labs
-  template:
-    metadata:
-      annotations:
-        fabric8.io/git-commit: 0120b762d7e26994e8b01d7e85f8941e5d095130
-        fabric8.io/git-branch: master
-        fabric8.io/scm-tag: HEAD
-        ...
-      labels:
-        app: myboutique
-        provider: fabric8
-        version: 0.0.1-SNAPSHOT
-        group: com.onepoint.labs
-    spec:
-      containers:
-      - env:
-        - name: POSTGRES_SERVICE
-          valueFrom:
-            configMapKeyRef:
-              key: postgres.service.name
-              name: postgres-config
-        - name: POSTGRES_DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              key: postgres.db.name
-              name: postgres-config
-        - name: POSTGRES_DB_USER
-          valueFrom:
-            secretKeyRef:
-              key: db.user.name
-              name: db-security
-        - name: POSTGRES_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: db.user.password
-          name: db-security
-        - name: KUBERNETES_NAMESPACE
-          valueFrom:
-            fieldRef:
-            fieldPath: metadata.namespace
-        image: nebrass/myboutique:snapshot-180327-003059-0437
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 180
-        name: myboutique
-        ports:
-        - containerPort: 8080
-          name: http
-          protocol: TCP
-        - containerPort: 9779
-          name: prometheus
-          protocol: TCP
-        - containerPort: 8778
-          name: jolokia
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 10
-        securityContext:
-          privileged: false
-```
-
-
-
-- git-commit id 또는 git-branch와 같은 많은 유용한 데이터를 보유하는 생성 된 Annotation
-- Label 섹션에는 Maven 프로젝트 그룹 ID, artifactId 및 버전 정보가 있다.
-  여기에 provider = fabric8 Lable을 추가하여이 데이터가 f8mp에 의해 생성되었음을 알려준다.
-- f8mp에 의해 생성 및 빌드 된 Docker 이미지. 접미사 snapshot-180327-003059-0437는 버전 태그를 할당하는 기본 형식이다.
-- Liveness probe는 구성된 컨테이너가 아직 작동 중인지 확인한다.
-- Readiness probe는 컨테이너가 Request를 처리 할 준비가되었는지 확인한다.
-
-> Tip
-> f8mp가 클래스 경로에서 Spring-Boot-Actuator 라이브러리를 감지했기 때문에 Liveness and readiness probe가 생성된다.
-
-
-
-이 시점에서 mvn fabric8 : apply 명령을 사용하여 애플리케이션을 배포 할 수 있으며, 결과는 다음과 같다.
-
-
-
-```shell
-[INFO] --- fabric8-maven-plugin:3.5.41:apply (default-cli) @ myboutique ---
-[INFO] F8: Using Kubernetes at https://192.168.99.100:8443/ in namespace default with manifest
-/Users/n.lamouchi/Downloads/MyBoutiqueReactive/target/classes/META-INF/fabric8/kubernetes.yml
-[INFO] Using namespace: default
-[INFO] Updating a Service from kubernetes.yml
-[INFO] Updated Service: target/fabric8/applyJson/default/service-myboutique.json
-[INFO] Using namespace: default
-[INFO] Creating a Deployment from kubernetes.yml namespace default name myboutique
-[INFO] Created Deployment: target/fabric8/applyJson/default/deployment-myboutique.json
-[INFO] F8: HINT: Use the command `kubectl get pods -w` to watch your pods start up
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 16.003 s
-[INFO] Finished at: 2018-03-28T00:03:56+02:00
-[INFO] Final Memory: 78M/756M
-[INFO] ------------------------------------------------------------------------
-```
+##### 9.6.1.5 쿠버네티스에 배포
 
 
 
 클러스터에 존재하는 모든 리소스를 확인할 수 있다.
 
-
-
 ```shell
 kubectl get all
 ```
 
-
-
 이 명령은 기본 네임 스페이스의 모든 리소스 리스트를 조회한다. 출력은 다음과 같다.
-
-
 
 ```shell
 NAME  				DESIRED	CURRENT	UP-TO-DATE 	AVAILABLE 	AGE
-deploy/myboutique 	1 		1 		1 			1 			6m
+deploy/shopping 	1 		1 		1 			1 			6m
 deploy/postgresql	1 		1 		1 			1 			7m
 
 NAME 						DESIRED CURRENT READY 	AGE
-rs/myboutique-5dd7cbff98 	1 		1 		1 		6m
+rs/shopping-5dd7cbff98 	1 		1 		1 		6m
 rs/postgresql-5f57747985 	1 		1 		1 		7m
 
 NAME 							READY 	STATUS 		RESTARTS 	AGE
-po/myboutique-5dd7cbff98-w2wtl 	1/1 	Running 	0 			6m
+po/shopping-5dd7cbff98-w2wtl 	1/1 	Running 	0 			6m
 po/postgresql-5f57747985-8n9h6 	1/1 	Running 	0 			7m
 
 NAME 			TYPE 		CLUSTER-IP 		EXTERNAL-IP PORT(S) 	AGE
 svc/kubernetes 	ClusterIP 	10.96.0.1 		<none> 		443/TCP 	23m
-svc/myboutique 	ClusterIP 	10.106.72.231 	<none> 		8080/TCP 	20m
+svc/shopping 	ClusterIP 	10.106.72.231 	<none> 		8080/TCP 	20m
 svc/postgresql 	ClusterIP 	10.111.62.173 	<none> 		5432/TCP 	21m
 ```
 
@@ -2501,32 +2465,26 @@ svc/postgresql 	ClusterIP 	10.111.62.173 	<none> 		5432/TCP 	21m
 > 팁
 > K8s 대시 보드에 이러한 모든 리소스 리스트를 조회할 수 있다.
 
-
-
 이러한 리소스들이 이전에 수행 한 단계를 통하여 생성되었다.
 
 
 
-##### 9.5.1.6 동작 결과 확인
+##### 9.6.1.6 동작 결과 확인
 
 
 
 완료되었다. 애플리케이션과 필요한 모든 리소스를 배포했다. 그러나 우리는 어떻게 배포 된 애플리케이션에 접근 할 수 있을까? 
 
-애플리케이션은 myboutique라는 Kubernetes 서비스 객체를 통해 접근할 수 있다.
+애플리케이션은 shopping라는 Kubernetes 서비스 객체를 통해 접근할 수 있다.
 
-myboutique 서비스가 무엇인지 확인하고 kubectl get svc myboutique를 입력하면 결과는 다음과 같다.
-
-
+shopping 서비스가 무엇인지 확인하고 kubectl get svc shopping를 입력하면 결과는 다음과 같다.
 
 ```shell
-kubectl get svc myboutique
+kubectl get svc shopping
 
 NAME 		TYPE 		CLUSTER-IP 		EXTERNAL-IP 	PORT(S) 	AGE
-myboutique 	ClusterIP 	10.106.72.231 	<none> 			8080/TCP 	1d
+shopping 	ClusterIP 	10.106.72.231 	<none> 			8080/TCP 	1d
 ```
-
-
 
 서비스 유형은 ClusterIP이다. ClusterIP 란 무엇일까?
 
@@ -2537,16 +2495,13 @@ ClusterIP는 기본 ServiceType이다. 클러스터 내부 IP로 서비스를 �
 그렇다. ClusterIP 외에 세 가지 다른 유형의 서비스가 있다.
 
 - NodePort : 각 노드의 IP에 정적 포트 (NodePort)로있는 서비스를 노출한다. NodePort 서비스가 라우팅할 ClusterIP 서비스는 자동으로 생성된다. <NodeIP> : <NodePort> 형식으로 요청하여 클러스터 외부에서 NodePort 서비스에 연결할 수 있다.
+
 - LoadBalancer : 클라우드 공급자의 LoadBalancer 를 사용하여 외부에 서비스를 노출한다.
   외부 LoadBalancer 가 라우팅 할 NodePort 및 ClusterIP 서비스는 자동으로 생성된다.
 - ExternalName : 해당 값과 함께 CNAME 레코드를 반환하여 서비스를 externalName 필드의 내용으로 매핑한다(예 : foo.bar.example.com).
 
-
-
 > Tip
 > 샘플 애플리케이션의 경우에서는 트래픽을 모든 노드에 걸쳐 리디렉션하는 LoadBalancer 서비스를 사용한다. 클라이언트는 LoadBalancer의 IP를 통해 LoadBalancer 서비스에 연결한다.
-
-
 
 LoadBalancer가 샘플 애플리케이션의 ServiceType이된다. 그러나 이것을 f8mp에게 어떻게 알려줄 수 있을까?
 
@@ -2555,15 +2510,11 @@ LoadBalancer가 샘플 애플리케이션의 ServiceType이된다. 그러나 이
 • 이전에했던 것처럼 Resource Fragment를 사용
 • f8mp 플러그인의 XML 기반 Configuration 인 Inline Configuration을 사용
 
-
-
 이번에는 Inline Configuration을 사용하여 f8mp에 LoadBalancer 서비스가 필요함을 알려주도록 하겠다.
 
 f8mp 플러그인의 Configuration 섹션에서 Enricher를 선언한다.
 
 Enricher는 Kubernetes 및 Openshift 리소스 객체를 생성하고 커스터마이징하는 데 사용되는 컴포넌트이다. f8mp에는 기본적으로 활성화되는 enricher 세트가 함께 제공된다. 이들 enricher들 중 하나로 서비스를 커스터마이징하는 데 사용되는 것이 fmp-service이다.
-
-
 
 Configuration된 enricher가있는 f8mp는 다음과 같다.
 
@@ -2585,110 +2536,88 @@ Configuration된 enricher가있는 f8mp는 다음과 같다.
 </plugin>
 ```
 
-
-
-mvn clean install fabric8 : apply를 사용하여 프로젝트를 빌드하고 다시 배포한 다음에 kubectl get svc myboutique를 사용하여 배포 된 서비스의 유형이 무엇인지 확인해 보자.
-
-
+mvn clean install fabric8 : apply를 사용하여 프로젝트를 빌드하고 다시 배포한 다음에 kubectl get svc shopping를 사용하여 배포 된 서비스의 유형이 무엇인지 확인해 보자.
 
 ```shell
 NAME 		TYPE 			CLUSTER-IP 		EXTERNAL-IP 	PORT(S) 		AGE
-myboutique 	LoadBalancer 	10.106.72.231 	<pending> 		8080:31246/TCP 	2d
+shopping 	LoadBalancer 	10.106.72.231 	<pending> 		8080:31246/TCP 	2d
 ```
 
 > Warning
 > EXTERNAL-IP 열에 표시된 <pending>은 minikube를 사용하고 있기 때문이다.
 
-
-
 자 이제 애플리케이션에 어떻게 액세스 할 수 있는가? 배포 된 애플리케이션의 URL을 어떻게 얻을 수 있는가?
 
 대답은 다음 질문보다 간단하다. minikube에 아래와 같이 입력하여 배포 된 앱의 URL을 가져온다.
 
-
-
 ```shell
-open $(minikube service myboutique --url)
+open $(minikube service shopping --url)
 ```
-
-
 
 이 명령은 기본 브라우저를 통하여 스프링 부트 애플리케이션의 URL에 접속한다.
 
-
-
 > Tip
-> minikube service myboutique --url 명령은 스프링 부트 애플리케이션을 가리키는 myboutique 서비스의 경로를 제공한다.
-
-
+> minikube service shopping --url 명령은 스프링 부트 애플리케이션을 가리키는 shopping 서비스의 경로를 제공한다.
 
 배포 된 앱의 Swagger UI에 어떻게 액세스 할 수 있는가?
 
-
-
 ```shell
-open $(minikube service myboutique --url)/swagger-ui.html
+open $(minikube service shopping --url)/swagger-ui.html
 ```
-
-
 
 위의  명령은 기본 브라우저를 통하여 스프링 부트 애플리케이션의 URL에 접속한다.
 
-![Landing Page of the deployed application on Kubernetes](kubernetes/Landing%20Page%20of%20the%20deployed%20application%20on%20Kubernetes.PNG)
+![Landing Page of the deployed application on Kubernetes](kubernetes/Landing%20Page%20of%20the%20deployed%20application%20on%20Kubernetes-1711334647405.PNG)
 
 
 
-#### 9.5.2 쿠버네티스 이후 마이크로서비스 패턴에 대한 재검토
+#### 9.6.2 쿠버네티스 적용 이후 마이크로서비스 패턴에 대한 재 검토
 
 
 
 이 부분이 저자가 책에서 가장 좋아하는 부분이다. 이 책을 쓰기 시작한 이후로 이 부분에 대하여 작성하기를 고대하고 있었다.
 
-이 부분에서는 이전에 작성한 많은 컴포넌트를 제거하고 쿠버네티스컴포넌트로 대체한다.
+이 부분에서는 이전에 작성한 많은 컴포넌트를 제거하고 Kubernetes 컴포넌트로 대체한다.
 
 > 로마에 있을 때에는 로마인처럼 행동하라
 > – 출처 미상
 
-
-
-스프링 클라우드 생태계는 쿠버네티스 클러스터와 상호 작용하는 많은 도구를 제공하는 라이브러리 세트로 된 스프링 클라우드 쿠버네티스라는 프로젝트를 인큐베이팅하고 있다.
-
-
-
-##### 9.5.2.1 서비스 탐색과 등록
+스프링 클라우드 생태계는 Kubernetes 클러스터와 상호 작용하는 많은 도구를 제공하는 library 세트로 된 스프링 클라우드 Kubernetes라는 프로젝트를 인큐베이팅하고 있다.
 
 
 
-쿠버네티스는 훌륭한 서비스 검색 기능을 제공한다. 이러한 기능을 사용하여 Eureka를 제거 할 수 있다. 배포한 마이크로서비스를 쿠버네티스가 찾을 수 있게 한다.
+##### 9.6.2.1 서비스 탐색과 등록
 
-이전에 이야기한 많은 쿠버네티스컴포넌트 중에 어떤 것이 Service Discovery를 위하여 사용되는가? 
+
+
+Kubernetes는 훌륭한 서비스 검색 기능을 제공한다. 이러한 기능을 사용하여 Eureka를 제거 할 수 있다. 배포한 마이크로서비스를 Kubernetes가 찾을 수 있게 한다.
+
+이전에 이야기한 많은 Kubernetes 컴포넌트 중에 어떤 것이 Service Discovery를 위하여 사용되는가? 
 
 답은 바로 서비스이다. 좀 더 설명해 보겠다.
 
-이 장의 첫 번째 부분에서 이미 스프링 부트 애플리케이션을 쿠버네티스에서 실행하는 방법을 살펴 보았다.
+이 장의 첫 번째 부분에서 이미 스프링 부트 애플리케이션을 Kubernetes에서 실행하는 방법을 살펴 보았다.
 
-샘플 애플리케이션은 쿠버네티스 Pod 내에서 실행되는 Docker 컨테이너에서 실행된다. 컨테이너화 된 샘플 애플리케이션은 Hazelcast 캐시 엔진 또는 DB와 같은 다른 Pod의 다른 애플리케이션과 통신해야 한다. 다음 다이어그램은 그 예제에 대하여 설명한 것이다.
+샘플 애플리케이션은 Kubernetes Pod 내에서 실행되는 Docker 컨테이너에서 실행된다. 컨테이너화 된 샘플 애플리케이션은 Hazelcast 캐시 엔진 또는 DB와 같은 다른 Pod의 다른 애플리케이션과 통신해야 한다. 다음 다이어그램은 그 예제에 대하여 설명한 것이다.
 
-![Application running in a Container inside a Pod - Communication with Services](kubernetes/Application%20running%20in%20a%20Container%20inside%20a%20Pod%20-%20Communication%20with%20Services.PNG)
+![application running in a Container inside a Pod - Communication with Services](kubernetes/application%20running%20in%20a%20Container%20inside%20a%20Pod%20-%20Communication%20with%20Services-1711334647406.PNG)
 
-DB 인스턴스는 어떤 이유로든 Crash되거나 재기동될 수 있는 Pod에서 실행 중이기 때문에, Eureka를 갖고 있다면 새로운 인스턴스가 기동된 후에 서비스를 계속할 수 있다. 쿠버네티스서비스는 동일한 기능을 제공한다. db-svc 객체는 DB Pod를 가리키고 있다. 새 DB Pod가 생성되면 자동으로 db-svc로 추적되는 pod로 클러스터 데이터에 등록된다.
+DB 인스턴스는 어떤 이유로든 Crash되거나 재기동될 수 있는 Pod에서 실행 중이기 때문에, Eureka를 갖고 있다면 새로운 인스턴스가 기동된 후에 서비스를 계속할 수 있다. Kubernetes 서비스는 동일한 기능을 제공한다. db-svc 객체는 DB Pod를 가리키고 있다. 새 DB Pod가 생성되면 자동으로 db-svc로 추적되는 pod로 클러스터 데이터에 등록된다.
 
-db-svc 서비스는 app = sample-app selector를 사용하여 DB Pod를 추적한다. 마이크로서비스를 컨테이너로 배포 하면 Pod를 서비스로 노출하여 쉽게 추적 할 수 있다. 샘플 마이크로서비스에서는 서비스 이름으로 멀리 떨어진 마이크로서비스를 계속 호출하면, 쿠버네티스 내의 임베디드 DNS 서버는 배포된 Pod가 있는 동일한 네임 스페이스에서 서비스 이름을 확인한다. 따라서 Eureka 나 다른 라이브러리 또는 Configuration이 필요하지 않다.
+db-svc 서비스는 app = sample-app selector를 사용하여 DB Pod를 추적한다. 마이크로서비스를 컨테이너로 배포 하면 Pod를 서비스로 노출하여 쉽게 추적 할 수 있다. 샘플 마이크로서비스에서는 서비스 이름으로 멀리 떨어진 마이크로서비스를 계속 호출하면, Kubernetes 내의 임베디드 DNS 서버는 배포된 Pod가 있는 동일한 네임 스페이스에서 서비스 이름을 확인한다. 따라서 Eureka 나 다른 라이브러리 또는 Configuration이 필요하지 않다.
 
-쿠버네티스에는 kube-dns라는 특수 Pod가 있으며 이 Pod는 kube-system 네임 스페이스에 있다. 이 Pod는 쿠버네티스클러스터에서 서비스 이름을 확인하는 컴포넌트이다.
+Kubernetes에는 kube-dns라는 특수 Pod가 있으며 이 Pod는 kube-system 네임 스페이스에 있다. 이 Pod는 Kubernetes 클러스터에서 서비스 이름을 확인하는 컴포넌트이다.
 
 > Environment Variable을 이용한 서비스 검색
 > Environment Variable을 이용한 Service Discovery의 다른 옵션이 있다. 이는  Pod가 생성 될 때 각 활성 서비스에 대한 환경 변수 세트를 주입하는 것이다. 이 옵션은 권장되지 않는다. DNS 기반 서비스 검색이 더 좋다.
 
 
 
-###### 쿠버네티스 지원 Discovery 라이브러리 참여
+###### Kubernetes 지원 Discovery 라이브러리 참여
 
 
 
 ###### Step 1 : Eureka 클라이언트 Dependency 제거
-
-
 
 이미 Eureka를 사용하지 않을 것이라고 언급 했으므로 더 이상 Eureka Client에 대한 dependency가 필요하지 않다.
 
@@ -2701,17 +2630,11 @@ db-svc 서비스는 app = sample-app selector를 사용하여 DB Pod를 추적�
 </dependency>
 ```
 
-
-
 > 또한 애플리케이션.properties | yaml 파일에서 모든 Eureka 속성을 제거해야한다.
 
+###### Step 2 : Kubernetes 지원 검색 라이브러리 추가
 
-
-###### Step 2 : 쿠버네티스 지원 검색 라이브러리 추가
-
-
-
-스프링 클라우드 쿠버네티스 라이브러리에는 스프링 클라우드 쿠버네티스 Discovery라는 라이브러리가 포함되어 있다. 이 라이브러리를 사용하면 쿠버네티스 Services를 이름으로 조회할 수 있다.
+스프링 클라우드 Kubernetes 라이브러리에는 스프링 클라우드 Kubernetes Discovery라는 라이브러리가 포함되어 있다. 이 라이브러리를 사용하면 Kubernetes Services를 이름으로 조회할 수 있다.
 
 ```xml
 <dependency>
@@ -2720,11 +2643,7 @@ db-svc 서비스는 app = sample-app selector를 사용하여 DB Pod를 추적�
 </dependency>
 ```
 
-
-
-###### Step 3 : 쿠버네티스 서비스 이름 정의
-
-
+###### Step 3 : Kubernetes 서비스 이름 정의
 
 일부 스프링 클라우드 컴포넌트는 서비스 인스턴스에 대한 정보를 얻기 위해 DiscoveryClient를 사용한다. 이 작업을 수행하려면 서비스 이름이 spring.application.name property 값과 동일한 지 확인해야한다.
 
@@ -2770,11 +2689,7 @@ db-svc 서비스는 app = sample-app selector를 사용하여 DB Pod를 추적�
 </build>
 ```
 
-
-
 그리고 애플리케이션.properties 파일에서 프로젝트명을 정의한다.
-
-
 
 ```properties
 spring.application.name = @project.name@
@@ -2782,11 +2697,14 @@ spring.application.name = @project.name@
 
 
 
-이제 spring.application.name과 쿠버네티스 서비스 이름이 동일한 값, 즉 Maven project.name으로 설정된다. 
+- 다 좋은데, 뭐하는 건지 잘 모르겠어...
+- 침착하기 바란다. Maven이 애플리케이션을 빌드하는 동안 src/main/resources에 있는 파일을 파싱하도록 요청했다. 여기서 Maven 파서는 @project.name@ 패턴을 인식하고 pom.xml에 정의 된 Maven project.name으로 그 패턴을 대체한다.
+
+이제 spring.application.name과 Kubernetes Service 이름이 동일한 값, 즉 Maven project.name인지 확신할 수 있다.
 
 
 
-##### 9.5.2.2 Load Balancing
+##### 9.6.2.2 부하 분산
 
 
 
@@ -2819,7 +2737,7 @@ Discovery Feature는 스프링 클라우드 Kubernetes Ribbon 프로젝트에서
 
 
 
-##### 9.5.2.3 Externalized Configuration
+##### 9.6.2.3 외부화된 구성정보
 
 
 
@@ -2947,17 +2865,16 @@ Reload 기능은 두 가지 작동 모드를 지원한다.
 
 스프링 클라우드 Kubernetes Reload property들은 다음과 같다 :
 
-![스프링 클라우드 Kubernetes Reload properties](images/스프링 클라우드 Kubernetes Reload properties.png)
+![스프링 클라우드 Kubernetes Reload properties](kubernetes/Spring%20Cloud%20Kubernetes%20Reload%20properties.png)
 
 Notes :
 
 - spring.cloud.kubernetes.reload의 Property들은 config map이나 secret으로 사용해서는 안된다. 런타임에 이러한 속성을 변경하면 예기치 않은 결과가 발생할 수 있다.
 - Reload Strategy를 refresh 레벨을 사용할 때, Property 또는 전체 Configuration 맵을 삭제해도 Bean의 원래 상태로 복원되지는 않는다.
-  
 
 
 
-##### 9.5.2.4 Log aggregation
+##### 9.6.2.4 로그 집계
 
 
 
@@ -2971,13 +2888,11 @@ Fluentd는 데이터를 더 잘 사용하고 이해할 수 있도록 데이터 �
 
 
 
-###### Step 1 : Minikube 준비
+###### Step 1 : Kubernetes 준비
 
 
 
 Default Configuration은 동시에 다수의 Pod를 실행하기에는 상대적으로 부족하기 때문에 Minikube에 대한 Custom Configuration이 필요하다.
-
-
 
 > 기본 Minikube Configuration
 > Minikube에는 사용자 정의 Configuration이 정의되지 않은 경우 사용되는 기본 Configuration이 있다.
@@ -2988,45 +2903,27 @@ Default Configuration은 동시에 다수의 Pod를 실행하기에는 상대적
 >
 > 필요한 경우 필요에 맞게 이러한 값을 재정의한다.
 
-
-
 이전 Kubernetes 클러스터를 삭제해야 한다.
-
-
 
 ```shell
 minikube delete --force
 ```
 
-
-
 8GB의 메모리가 필요하다.
-
-
 
 ```shell
 minikube config set memory 8192
 ```
 
-
-
 3 개의 CPU가 필요하다.
-
-
 
 ```shell
 minikube config set cpus 3
 ```
 
-
-
 ###### Step 2 : Helm을 사용하여 EFK 설치
 
-
-
 Kubernetes 클러스터에 EFK 스택을 설치하기 위해 Helm을 사용한다.
-
-
 
 > Helm이란?
 >
@@ -3057,31 +2954,19 @@ Kubernetes 클러스터에 EFK 스택을 설치하기 위해 Helm을 사용한�
 >
 > 이러한 패키지 차트는 차트 저장소에서 자동으로 다운로드하여 설치할 수도 있다.
 
-
-
 Step 2.1 : Helm 준비
-
-
 
 먼저 Helm Tiller 컴포넌트를 설치해야한다. Tiller는 Helm의 클러스터 내 컴포넌트이다. Kubernetes API 서버와 직접 상호 작용하여 Kubernetes 리소스를 설치, 업그레이드, 쿼리 및 제거한다. 릴리스를 나타내는 개체도 저장한다.
 
 클러스터에 틸러 Pod를 배포하려면 :
 
-
-
 ```shell
 helm init
 ```
 
-
-
 > 틸러 Pod는 kube-system 네임 스페이스에 생성된다.
 
-
-
 다음 명령으로 틸러 Pod가 실행 중인지 확인한다.
-
-
 
 ```shell
 kubectl get pods -n kube-system -w
@@ -3091,34 +2976,22 @@ NAME 							READY 	STATUS 	RESTARTS 	AGE
 tiller-deploy-845cffcd48-mh8vl 	1/1 	Running 0 			1m
 ```
 
-
-
 Step 2.2 : 차트 저장소 추가
-
-
 
 여기서는 훌륭한 개발자이자 블로거 인 Alen Komljen(https://akomljen.com/get-kubernetes-logs-with-efk-stack-in-5-minutes/)이 만든 훌륭한 EFK 차트를 사용할 것이다.
 
 Helm 저장소에 그의 저장소를 추가해야한다.
-
-
 
 ```shell
 helm repo add akomljen-charts \
 	https://raw.githubusercontent.com/komljen/helm-charts/master/charts/
 ```
 
-
-
 ###### Step 3 : Elasticsearch Operator 설치
-
-
 
 Operator 정의부터 시작해보자. Kubernetes Operator 는 기본적으로 특정 서비스 운영을 위해 사용자 지정 비즈니스 로직을 생성하기 위한 Custom Resource Definition(CRD)로 등록되는 사용자 지정 API 개체이다. Operator는 애플리케이션을 안정적으로 관리하기 위한 인간의 소프트웨어 운영 지식을 의미한다.
 
 Elasticsearch Operator 설치는 다음과 같다.
-
-
 
 ```shell
 helm install --name es-operator \
@@ -3126,11 +2999,7 @@ helm install --name es-operator \
 	akomljen-charts/elasticsearch-operator
 ```
 
-
-
 Elasticsearch Operator를 배포 한 후 새로운 CustomResourceDefinition(CRD)을 확인할 수 있다.
-
-
 
 ```shell
 kubectl get crd
@@ -3139,11 +3008,7 @@ NAME 										CREATED AT
 elasticsearchclusters.enterprises.upmc.com 	2018-11-02T20:37:02Z
 ```
 
-
-
 이 CRD의 세부 사항을 확인하려면 다음을 수행하면 된다.
-
-
 
 ```shell
 kubectl describe crd elasticsearchclusters.enterprises.upmc.com
@@ -3169,8 +3034,6 @@ Spec:
 ...
 ```
 
-
-
 보다시피 ElasticsearchCluster라는 새로운 종류의 리소스가 있다. 이 CRD는 Elasticsearch 클러스터를 만들 때 사용된다.
 
 
@@ -3181,23 +3044,15 @@ Spec:
 
 클러스터에 필요한 CustomResourceDefinition을 배포 한 후 EFK 스택을 설치하려면 다음 명령을 입력하면된다.
 
-
-
 ```shell
 helm install --name efk \
 	--namespace logging \
 	akomljen-charts/efk
 ```
 
-
-
 > 이 작업은 Docker 이미지가 저장소에서 가져 오고 Kubernetes에 배포하는 시간으로 몇 분 정도 소요된다.
 
-
-
 다음 명령을 입력하여 모든 서비스가 생성되고 실행되고 있는지 확인할 수 있다.
-
-
 
 ```shell
 kubectl get pods -n logging -w
@@ -3211,11 +3066,7 @@ es-operator-elasticsearch-operator-fbbd9556c-vdq4r 	1/1 	Running 0 			37m
 fluent-bit-mfq2m 									1/1 	Running 0 			5m
 ```
 
-
-
 몇 분 후에 모든 서비스가 실행되고 있어야한다. Kibana 서비스에 액세스 할 Ingress를 만든다.
-
-
 
 ```yaml
 kind: Ingress
@@ -3243,19 +3094,19 @@ echo "$ (minikube ip) efk-kibana.info"| sudo tee -a /etc/hosts
 
 이 명령은 efk-kibana.info에서 Kibana 서비스에 접근 할 수 있도록한다.
 
-![Kibana console reacheable on efk-kibana.info](kubernetes/Kibana%20console%20reacheable%20on%20efk-kibana.info.PNG)
+![Kibana console reacheable on efk-kibana.info](kubernetes/Kibana%20console%20reacheable%20on%20efk-kibana.info-1711334647406.PNG)
 
 그런 다음 대시 보드 메뉴 항목으로 이동하여 인덱스를 kubernetes_cluster *로 Configuration한다.
 
-![Create index pattern - Step 1](kubernetes/Create%20index%20pattern%20-%20Step%201.PNG)
+![Create index pattern - Step 1](kubernetes/Create%20index%20pattern%20-%20Step%201-1711334647406.PNG)
 
 다음으로 @timestamp를 선택하면 Kibana가 준비된다.
 
-![Create index pattern - Step 2](kubernetes/Create%20index%20pattern%20-%20Step%202.PNG)
+![Create index pattern - Step 2](kubernetes/Create%20index%20pattern%20-%20Step%202-1711334647406.PNG)
 
 Kubernetes 클러스터에있는 모든 네임 스페이스의 모든 로그가 표시되어야 한다. 풍부한 Kubernetes 메타 데이터 또한 포함되어 있을 것이다
 
-![Kibana - Discover](kubernetes/Kibana%20-%20Discover.PNG)
+![Kibana - Discover](kubernetes/Kibana%20-%20Discover-1711334647406.PNG)
 
 이제 모든 Pod 로그가 이제 Kibana에서 중앙 집중화된다.
 
@@ -3292,7 +3143,7 @@ Logstash에 로그를 브로드 캐스트하는 로그 어펜더가 더 이상 �
 
 
 
-##### 9.5.2.5 Health check API
+##### 9.6.2.5 Health check API
 
 
 
@@ -3355,7 +3206,7 @@ spec:
 
 
 
-##### 9.5.2.6 API Gateway
+##### 9.6.2.6 API Gateway
 
 
 
@@ -3366,9 +3217,7 @@ API Gateway를 구현하기 위하여 스프링 클라우드 Netflix Zuul을 사
 Kubernetes Ingress는 일반적으로 HTTP 인 클러스터의 서비스에 대한 외부 액세스를 관리한다. Ingress는 
 Load Balancing, SSL Termincation 및 name-based vertual hosting을 제공 할 수 있다.
 
-![Exposing services using an Ingress](kubernetes/Exposing%20services%20using%20an%20Ingress.PNG)
-
-
+![Exposing services using an Ingress](kubernetes/Exposing%20services%20using%20an%20Ingress-1711334647406.PNG)
 
 Ingress는 인바운드 연결이 클러스터 서비스에 도달하도록 허용하는 규칙 모음이다. 외부에서 연결할 수있는 URL, 트래픽에 대한 부하 분산, terminate SSL,  이름 기반의 가상 호스팅 등의 서비스를 제공하도록 Configuration 할 수 있다. 사용자는 Ingress 리소스를 API server에 포스팅하여 Ingress를 요청한다. Ingress Controller는 일반적으로 Load Balance와 함께 Ingress를 만족할 책임이 있지만, HA 방식으로 트래픽을 처리하는 데 도움이 되는 에지 라우터 또는 부가적인 프런트 엔드로 구성될 수 있다. 
 
@@ -3394,7 +3243,7 @@ Ingress는 3 가지 마이크로서비스를 가리킨다.
 - OrderService
 - CustomerService
 
-Ingress를 위한 도메인 이름이 필요한다. 이미 myboutique.io 도메인 이름이 있다고 가정 해 보겠다.
+Ingress를 위한 도메인 이름이 필요한다. 이미 shopping.io 도메인 이름이 있다고 가정 해 보겠다.
 
 Ingress descriptor는 다음과 같다.
 
@@ -3410,7 +3259,7 @@ spec:
     serviceName: default-http-backend
     servicePort: 80
   rules:
-  - host: myboutique.io
+  - host: shopping.io
     http:
       paths:
       - path: /product
@@ -3437,11 +3286,13 @@ kubectl create -f api-gateway-ingress.yml
 
 
 
-##### 9.5.2.7 Distributed Tracing
+##### 9.6.2.7 분산 추적
 
 
 
 이 절에서는 이전에 가지고 있던 독립형 Zipkin 인스턴스를 Kubernetes 클러스터 및 이전 localhost : 9411 대신 Kubernetes에서 호스팅된 Zipkin으로 마이크로서비스 Point를 만들기 위해 Configuration을 업데이트한다.
+
+하지만 이러한 분산 
 
 
 
@@ -3473,9 +3324,11 @@ kubectl expose deployment zipkin --type=LoadBalancer --port 9411
 
 
 
-###### Step 2 : Sleth Trace를 Zipkin으로 전달
+###### Step 2 : Trace를 Zipkin으로 전달
 
 
+
+다음 사항을 언급해야한다.
 
 ```yaml
 spring:
@@ -3489,9 +3342,33 @@ spring:
 ...
 ```
 
-
-
 spring.zipkin.baseUrl은 zipkin Kubernetes Service를 가리키고 있다.
 
-이것이 전부다. 모든 것이 매력처럼 동작할 것이다.
+
+
+### 9.7 다음에 해야할 일들
+
+
+
+기본적인 개발 준비가 되었다면, 이제 외부 아키텍처 구성을 이해할 필요가 있다.
+
+
+
+#### 9.7.1 쿠버네티스 관리 도구 적용하기
+
+https://akyriako.medium.com/provision-a-high-availability-k3s-cluster-with-k3d-a7519f476c9c
+
+https://www.youtube.com/watch?v=8YLg2u1Y83M
+
+
+
+#### 9.7.1 CI 구성하기
+
+젠킨스를 이용한 CI 구성하기
+
+https://github.com/ssongman/ktds-edu-cloud-cicd/blob/main/jenkins/jenkins.md
+
+#### 9.7.2 CD 구성하기
+
+ArgoCD를 이용한 CD 구성하기
 
