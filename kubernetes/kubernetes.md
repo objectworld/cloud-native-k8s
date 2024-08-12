@@ -725,7 +725,7 @@ K3d CLI는 새 K3s 클러스터를 자동으로 생성하고 시작하는 `clust
 
 
 ```sh
-$k3d k3d cluster create
+$ k3d cluster create
 INFO[0000] Prep: Network
 INFO[0000] Created network 'k3d-k3s-default'
 INFO[0000] Created image volume k3d-k3s-default-images
