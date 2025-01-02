@@ -5,6 +5,10 @@
 > ktds Cloud Application Development using Kubernetes 교육 교재
 
 본 교육은 Cloud Native Application의 의미와 Docker, Kubnetes를 학습하는 과정으로 쇼핑몰 애플리케이션을 이용하여 스프링 클라우드에서 쿠버네티스로 전환하는 실습을 수행한다.
+교육 이전에 아래 링크를 통하여 설문을 진행하여 주시기 바랍니다.
+
+https://forms.gle/43VrCjbhZBAfXgVB7
+
 
 문의: 김유석( yus.kim@kt.com / yuskim@gmail.com )
 
