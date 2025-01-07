@@ -245,7 +245,10 @@ github 에서 교육 자료를 download 하자.
 * https://github.com/objectworld/chapter08.06-docker-spring-cloud-framework
 * https://github.com/objectworld/chapter08.07-docker-spring-cloud-shopping
 * https://github.com/objectworld/chapter09.01-k8s-postgresql
+* https://github.com/objectworld/chapter09.02-k8s-shopping
+
+
 
 #### (3) 교육자료 확인
 
-typora 를 실행하여 cloud-native-k8s/README.md  를 load 한다.
+typora 를 실행하여 cloud-native-k8s/README.md 를 load 한다.

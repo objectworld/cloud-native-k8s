@@ -100,7 +100,7 @@ CNCF Cloud Native Landscape
 
 ## 1.4 클라우드 네이티브 애플리케이션 기술
 
-- 클라우드 컴퓨팅 환경이란, 클라우드 공간에 가상화된 공유자원을 사용자의 요구에 따라 할당하고 해제할 수 있는 동적인 컴퓨팅 환경을 말하며, 클라우드에서 제공하는 **서비스의 유형에 따라서, Publilc 클라우드, Private 클라우드, Hybrid 클라우드** 등의 환경으로 나뉜다.
+- 클라우드 컴퓨팅 환경이란, 클라우드 공간에 가상화된 공유자원을 사용자의 요구에 따라 할당하고 해제할 수 있는 동적인 컴퓨팅 환경을 말하며, 클라우드에서 제공하는 **서비스의 유형에 따라서, Public 클라우드, Private 클라우드, Hybrid 클라우드** 등의 환경으로 나뉜다.
 
 - 클라우드 컴퓨팅 모델의 장점을 가지고 개발된 애플리케이션을 클라우드 네이티브 애플리케이션이라 하며, **클라우드 네이티브 애플리케이션이 가져야 하는 특징**은 다음과 같다.
 
@@ -184,7 +184,7 @@ https://12factor.net/ko/
 
 - **이 원칙에 따라 Spring Boot 애플리케이션의 소스 코드를 포함하는 단일 Git 리포지토리를 갖게 됩니다. 이 코드는 컴파일 및 패키징된 다음 하나 이상의 환경에 배포된다.**
 
-- [Spring 프로필](https://reflectoring.io/spring-boot-profiles/) 및 [환경별 속성](https://reflectoring.io/profile-specific-logging-spring-boot/) 을 사용하여 런타임 시 특정 환경에 대한 애플리케이션을 구성한다.
+- [Spring 프로파일](https://reflectoring.io/spring-boot-profiles/) 및 [환경별 속성](https://reflectoring.io/profile-specific-logging-spring-boot/) 을 사용하여 런타임 시 특정 환경에 대한 애플리케이션을 구성한다.
 
 > **특정 환경에 맞게 구성하기 위해 소스 코드를 변경해야** 하거나 개발 및 프로덕션과 같은 다양한 환경에 대해 별도의 리포지토리가 있는 경우 이 규칙을 위반하는 것이다.
 
@@ -1096,11 +1096,11 @@ do something..
              // good practice to set it back to default true
              conn.setAutoCommit(true);
              
-             } catch(SQLException e) {
+} catch(SQLException e) {
              	
                 System.out.println(e.getMessage());
                 conn.rollback();
-             }
+}
 ```
 
 - conn.setAutoCommit(false);을 하여 자동커밋을 막아주고, 오류 없이 진행된다면 conn.commit();으로 커밋 된다.
