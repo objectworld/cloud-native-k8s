@@ -710,8 +710,8 @@ Run 'k3d --help' to see what you can do with it.
 
 ```sh
 $ k3d version
-k3d version v5.5.2
-k3s version v1.27.4-k3s1 (default)
+k3d version v5.7.5
+k3s version v1.30.6-k3s1 (default)
 ```
 
 
@@ -770,9 +770,9 @@ K3d는 새 클러스터에 대한 연결을 포함하도록 Kubernetes 구성 �
 
 ```sh
 $ kubectl cluster-info
-Kubernetes control plane is running at https://0.0.0.0:34093
-CoreDNS is running at https://0.0.0.0:34093/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-Metrics-server is running at https://0.0.0.0:34093/api/v1/namespaces/kube-system/services/https:metrics-server:https/proxy
+Kubernetes control plane is running at https://0.0.0.0:46203
+CoreDNS is running at https://0.0.0.0:46203/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Metrics-server is running at https://0.0.0.0:46203/api/v1/namespaces/kube-system/services/https:metrics-server:https/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
@@ -783,7 +783,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 
 
-```
+```sh
 $ kubectl get nodes
 NAME                       STATUS   ROLES                  AGE     VERSION
 k3d-k3s-default-server-0   Ready    control-plane,master   7m36s   v1.27.4+k3s1
@@ -795,12 +795,12 @@ k3d-k3s-default-server-0   Ready    control-plane,master   7m36s   v1.27.4+k3s1
 
 
 
-```
+```sh
 $ docker ps
-CONTAINER ID   IMAGE                            COMMAND                  CREATED         STATUS              PORTS                             NAMES
-d2c06a54bea7   ghcr.io/k3d-io/k3d-tools:5.6.0   "/app/k3d-tools noop"    2 minutes ago   Up 2 minutes                                          k3d-k3s-default-tools
-2b53b147799a   ghcr.io/k3d-io/k3d-proxy:5.6.0   "/bin/sh -c nginx-pr…"   2 minutes ago   Up About a minute   80/tcp, 0.0.0.0:34093->6443/tcp   k3d-k3s-default-serverlb
-78a005933b6e   rancher/k3s:v1.27.4-k3s1         "/bin/k3s server --t…"   2 minutes ago   Up 2 minutes                                          k3d-k3s-default-server-0
+RTS                             NAMES
+3d5a16e31690   ghcr.io/k3d-io/k3d-tools:5.7.5   "/app/k3d-tools noop"    About a minute ago   Up About a minute                                     k3d-k3s-default-tools
+cf2231b218c4   ghcr.io/k3d-io/k3d-proxy:5.7.5   "/bin/sh -c nginx-pr…"   About a minute ago   Up About a minute   80/tcp, 0.0.0.0:46203->6443/tcp   k3d-k3s-default-serverlb
+a494708bc653   rancher/k3s:v1.30.6-k3s1         "/bin/k3d-entrypoint…"   About a minute ago   Up About a minute                                     k3d-k3s-default-server-0
 ```
 
 * k3d-tools : K3d의 기능을 제공하는 컨테이너 이미지 
@@ -815,69 +815,150 @@ d2c06a54bea7   ghcr.io/k3d-io/k3d-tools:5.6.0   "/app/k3d-tools noop"    2 minut
 
 일반적으로, 잘 사용하지는 않는 단어이긴 하지만 네트워크 트래픽은 인그레스(Ingress)와 이그레스(Egress)로 구분된다. 인그레스는 외부로부터 서버 내부로 유입되는 네트워크 트래픽을, 이그레스는 서버 내부에서 외부로 나가는 트래픽을 의미한다. 
 
-쿠버네티스에도 인그레스라고 하는 리소스 객체가 존재한다. 쿠버네티스의 인그레스는 외부에서 쿠버네티스 클러스터 내부로 들어오는 네트워크 요청 : 즉, 인그레스 트래픽을 어떻게 처리할지 정의한다. 쉽게 말하자면, 인그레스는 외부에서 쿠버네티스에서 실행 중인 Deployment와 Service에 접근하기 위한, 일종의 게이트웨이(Gateway) 역할을 담당한다. 인그레스를 사용하지 않을 경우, 외부 요청을 처리할 수 있는 방법은 노드포트( NodePort), 외부아이피(ExternalIP) 등이 있다. 그러나 이러한 방법들은 세밀한 조정에는 한계가 있다.  
+쿠버네티스에도 인그레스라고 하는 리소스 객체가 존재한다. 쿠버네티스의 인그레스는 외부에서 쿠버네티스 클러스터 내부로 들어오는 네트워크 요청 : 즉, 인그레스 트래픽을 어떻게 처리할지 정의한다. 쉽게 말하자면, 인그레스는 외부에서 쿠버네티스에서 실행 중인 Deployment와 Service에 접근하기 위한, 일종의 게이트웨이(Gateway) 역할을 담당한다. 인그레스를 사용하지 않을 경우, 외부 요청을 처리할 수 있는 방법은 노드포트( NodePort), 외부아이피(External IP) 등이 있다. 그러나 이러한 방법들은 세밀한 조정에는 한계가 있다.  
 
 클러스터와 상호작용하고 Pod를 배포하기 위하여  인그레스 게이트웨이(Ingress Gateway)를 설정해보자.
 
-우선 인그레스 게이트웨이로 NGINX를 설치하고 80 포트로 노드포트를 연결한다.
+우선  인그레스 포트를 localhost:8081에 매핑하는 클러스터를 생성한다.
 
 ```sh
-$ kubectl run nginx --image nginx:latest
-pod/nginx created
+$ k3d cluster create --api-port 6550 -p "8081:80@loadbalancer" --agents 2
+INFO[0000] portmapping '8081:80' targets the loadbalancer: defaulting to [servers:*:proxy agents:*:proxy]
+INFO[0000] Prep: Network
+INFO[0000] Re-using existing network 'k3d-k3s-default' (5879aad286e678e1d01adde9d0708574d59ab5e148e412381d85eee322b75fed)
+INFO[0000] Created image volume k3d-k3s-default-images
+INFO[0000] Starting new tools node...
+INFO[0000] Starting node 'k3d-k3s-default-tools'
+INFO[0001] Creating node 'k3d-k3s-default-server-0'
+INFO[0001] Creating node 'k3d-k3s-default-agent-0'
+INFO[0001] Creating node 'k3d-k3s-default-agent-1'
+INFO[0001] Creating LoadBalancer 'k3d-k3s-default-serverlb'
+INFO[0001] Using the k3d-tools node to gather environment information
+INFO[0002] Starting new tools node...
+INFO[0002] Starting node 'k3d-k3s-default-tools'
+INFO[0003] Starting cluster 'k3s-default'
+INFO[0003] Starting servers...
+INFO[0003] Starting node 'k3d-k3s-default-server-0'
+INFO[0007] Starting agents...
+INFO[0008] Starting node 'k3d-k3s-default-agent-1'
+INFO[0008] Starting node 'k3d-k3s-default-agent-0'
+INFO[0012] Starting helpers...
+INFO[0012] Starting node 'k3d-k3s-default-serverlb'
+INFO[0018] Injecting records for hostAliases (incl. host.k3d.internal) and for 5 network members into CoreDNS configmap...
+INFO[0021] Cluster 'k3s-default' created successfully!
+INFO[0021] You can now use it like this:
+kubectl cluster-info
+```
 
-$ kubectl expose pod/nginx --port 80 --type NodePort
-service/nginx exposed
+- `--api-port 6550` is not required for the example to work.
+  It’s used to have `k3s`’s API-Server listening on port 6550 with that port mapped to the host system.
+
+- the port-mapping construct `8081:80@loadbalancer` means:
+
+  “map port `8081`  from the host to port `80` on the container which matches the nodefilter `loadbalancer`“
+
+  - the `loadbalancer`  nodefilter matches only the serverlb that’s deployed in front of a cluster’s server nodes
+    - all ports exposed on the `serverlb` will be proxied to the same ports on all server nodes in the cluster
+
+
+
+~/.config/k3d/kubeconfig-k3s-default.yaml에 저장된 클러스터의 정보를 Export(이미 `k3d cluster create`  명령어에서 디폴트 kubeconfig 파일로 클러스터 정보를 통합하였으므로 중복된 작업일 수 있다)
+
+```sh
+$ export KUBECONFIG="$(k3d kubeconfig write k3s-default)"
 ```
 
 
 
-NGINX 서버에 액세스하려면 먼저 쿠버네티스 노드에 할당된 IP 주소를 찾는다.
-
-
+생성된 클러스터에 nginx 디플로이먼트를 생성한다.
 
 ```sh
-$ kubectl get nodes -o wide
-NAME                       STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE   KERNEL-VERSION                      CONTAINER-RUNTIME
-k3d-k3s-default-server-0   Ready    control-plane,master   7h42m   v1.27.4+k3s1   172.21.0.3    <none>        K3s dev    5.15.90.1-microsoft-standard-WSL2   containerd://1.7.1-k3s1
+$ kubectl create deployment nginx --image=nginx
 ```
 
 
 
-이제 k3s-default 클러스터에 접속할 IP는 IP는 172.21.0.3이다.
-
-다음으로 nginx 서비스에 할당된 노드포트를 확인해보자.
-
-
+nginx라는 이름으로 ClusterIP 서비스를 생성한다.
 
 ```sh
-$ kubectl get services
-NAME         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-kubernetes   ClusterIP   10.43.0.1      <none>        443/TCP        8h
-nginx        NodePort    10.43.52.223   <none>        80:32508/TCP   32m
+$ kubectl create service clusterip nginx --tcp=80:80
 ```
 
 
 
-노출된 포트 번호는 32508이다. http://172.21.0.3:32508 에 접속하면 기본 NGINX 시작 페이지가 표시된다.
-
-
+Create an ingress object for it by copying the following manifest to a file and applying with 
 
 ```sh
-$ curl http://172.21.0.3:32508
+$ kubectl apply -f nginx-ingress.yaml
+```
+
+
+
+[코드 9.1] nginx 서버에 대한 인그레스 구성 파일
+
+```yaml
+# apiVersion: networking.k8s.io/v1beta1 # for k3s < v1.19
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx
+            port:
+              number: 80
+```
+
+
+
+> **Note**: `k3s` 는 디폴트 인그레스 컨트롤러로 [`traefik`](https://github.com/containous/traefik) 을 배포한다. 
+
+
+
+설정이 다 되었으면 curl을 통하여 접속해 본다. 
+
+```sh
+$ curl localhost:8081
 <!DOCTYPE html>
 <html>
 <head>
 <title>Welcome to nginx!</title>
-...
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
 ```
 
 
 
-서비스 노출 및 인그레스 네트워킹 설정에 대한 추가 설명은 K3d 가이드를 확인하기 바란다.
+노드 포트를 이용한 설정 및 인그레스 네트워킹 설정에 대한 추가 설명은 K3d 가이드(https://k3d.io/v5.7.5/usage/exposing_services/)를 확인하기 바란다.
 
 
 
-##### 9.3.3.4 K3s 플래그 활성화
+##### 9.3.3.4 K3s 플래그를 이용한 Traefik 비활성화
 
 
 
@@ -895,7 +976,9 @@ $ k3s cluster create --k3s-arg "--disable=traefik"
 
 
 
-##### 9.3.3.5 호스트에서 실행되는 서비스에 액세스
+##### 
+
+##### 9.3.3.4 호스트에서 실행되는 서비스에 액세스
 
 
 
@@ -903,11 +986,11 @@ K3d에서 실행하는 일부 워크로드는 도커 호스트에서 이미 실�
 
 
 
-##### 9.3.3.6 로컬 도커 이미지 사용
+##### 9.3.3.5 로컬 도커 이미지 사용
 
 K3d/K3s 클러스터는 로컬 도커 이미지에 액세스할 수 없다. 클러스터와 모든 구성 요소가 도커  내부에서 실행 중이기 때문이다. 호스트에만 있는 프라이빗 이미지를 사용하려고 하면 에러가 발생한다.
 
-이를 해결하는 두 가지 방법이 있다. 이미지를 레지스트리에 푸시하거나 K3d의 이미지 가져오기 기능을 사용하여 로컬 이미지를 클러스터에 복사한다. 첫 번째 방법은 이미지 저장소를 중앙 집중화하고 모든 환경에서 이미지에 액세스할 수 있으므로 일반적으로 선호된다. 로컬 변경 사항을 빠르게 테스트할 때 방금 빌드한 이미지를 직접 가져올 수 있습니다.
+이를 해결하는 두 가지 방법이 있다. 이미지를 레지스트리에 푸시하거나 K3d의 이미지 가져오기 기능을 사용하여 로컬 이미지를 클러스터에 복사한다. 첫 번째 방법은 이미지 저장소를 중앙 집중화하고 모든 환경에서 이미지에 액세스할 수 있으므로 일반적으로 선호된다. 로컬 변경 사항을 빠르게 테스트할 때 방금 빌드한 이미지를 직접 가져올 수 있다.
 
 
 
@@ -917,7 +1000,7 @@ $ k3d image import demo-image:latest
 
 
 
-이 명령은 클러스터 내에서 `demo-image:latest`를 사용할 수 있도록 합니다.
+이 명령은 클러스터 내에서 `demo-image:latest`를 사용할 수 있도록 한다.
 
 
 
@@ -946,7 +1029,7 @@ $ docker push k3d-demo-registry.localhost:12345/demo-image:latest
 
 
 
-##### 9.3.3.7 클러스터 중지
+##### 9.3.3.6 클러스터 중지
 
 
 
@@ -970,7 +1053,7 @@ $ k3d cluster start k3s-default
 
 
 
-##### 9.3.3.8 클러스터 삭제
+##### 9.3.3.7 클러스터 삭제
 
 
 
@@ -994,13 +1077,405 @@ INFO[0006] Successfully deleted cluster k3s-default!
 
 
 
-##### 9.3.3.9 요약
+##### 9.3.3.8 요약
 
 
 
 K3d를 사용하면 컨테이너화된 쿠버네티스 클러스터를 실행할 수 있다. Docker를 사용할 수 있는 모든 곳에서 완전한 K3s 환경을 제공한다. K3d는 여러 노드를 지원하고 이미지 레지스트리에 대한 통합 지원을 제공하며 여러 컨트롤 플레인이 있는 고가용성 클러스터를 만드는 데 사용할 수 있다.
 
-이미 도커를 실행 중인 개발자는 K3d를 사용하여 쿠버네티스를 작업 환경에 빠르게 추가할 수 있다. K3d는 가볍고 관리하기 쉬우며 컴퓨터에 불필요한 다른 시스템 서비스를 추가하지 않는다. 따라서 로컬 사용에 적합하지만 도커가 반드시 필요하기 때문에 도커를 사용하지 않고자 하는 상용 시스템에는 적합하지 않을 수 있다. Minikube, Microk8s 및 일반 K3와 같은 다른 쿠버네티스 배포판은 모두 실행 가능한 대안입니다.
+이미 도커를 실행 중인 개발자는 K3d를 사용하여 쿠버네티스를 작업 환경에 빠르게 추가할 수 있다. K3d는 가볍고 관리하기 쉬우며 컴퓨터에 불필요한 다른 시스템 서비스를 추가하지 않는다. 따라서 로컬 사용에 적합하지만 도커가 반드시 필요하기 때문에 도커를 사용하지 않고자 하는 상용 시스템에는 적합하지 않을 수 있다. 
+
+
+
+#### 9.3.4 쿠버네티스 대시보드 
+
+쿠버네티스 대시보드는 웹 기반 쿠버네티스 유저 인터페이스이다. 대시보드를 통해 컨테이너화 된 애플리케이션을 쿠버네티스 클러스터에 배포할 수 있고, 컨테이너화 된 애플리케이션을 트러블슈팅할 수 있으며, 클러스터 리소스들을 관리할 수 있다. 대시보드를 통해 클러스터에서 동작 중인 애플리케이션의 정보를 볼 수 있고, 개별적인 쿠버네티스 리소스들을(예를 들면 디플로이먼트, 잡, 데몬셋 등) 생성하거나 수정할 수 있다. 예를 들면, 디플로이먼트를 스케일하거나, 롤링 업데이트를 초기화하거나, 파드를 재시작하거나 또는 배포 마법사를 이용해 새로운 애플리케이션을 배포할 수 있다.
+
+또한 대시보드는 클러스터 내 쿠버네티스 리소스들의 상태와 발생하는 모든 에러 정보를 제공한다.
+
+
+
+##### 9.3.4.1 쿠버네티스 대시보드 UI 배포
+
+
+
+대시보드 UI는 기본으로 배포되지 않는다. 배포하려면 다음 커맨드를 실행한다.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.1/aio/deploy/recommended.yaml
+```
+
+
+
+가이드 페이지를 보면 아래와 같은 원격지에 정의되어 있는 recommended.yaml을 통하여 대시보드를 설치한다.
+
+```sh
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+```
+
+
+
+설치가 완료되었으면 다음과 같이 서비스 목록을 확인할 수 있다. 
+
+
+
+```sh
+$ kubectl get svc --all-namespaces
+NAMESPACE              NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+default                kubernetes                  ClusterIP   10.96.0.1        <none>        443/TCP                  65m
+kube-system            kube-dns                    ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP   65m
+kubernetes-dashboard   dashboard-metrics-scraper   ClusterIP   10.108.29.148    <none>        8000/TCP                 27m
+kubernetes-dashboard   kubernetes-dashboard        ClusterIP   10.100.193.200   <none>        443/TCP                  27m
+
+```
+
+
+
+이제  대시보드를 외부 포트에 노출시키기 위하여 프록시를 기동시킨다.
+
+
+
+```sh
+$ kubectl proxy --port=8001 --address=172.30.125.196 --accept-hosts='^*$'
+```
+
+
+
+이제 가이드에 있는 접속 URL을 이용하여 브라우저에 접속하면 [그림 9-3]과 같은 대시보드 화면이 표시된다.
+
+* http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+
+
+##### 9.3.4.2 어드민 사용자 생성
+
+In this guide, we will find out how to create a new user using the Service Account mechanism of Kubernetes, grant this user admin permissions and login to Dashboard using a bearer token tied to this user.
+
+For each of the following snippets for `ServiceAccount` and `ClusterRoleBinding`, you should copy them to new manifest files like `dashboard-adminuser.yaml` and use `kubectl apply -f dashboard-adminuser.yaml` to create them.
+
+
+
+###### 1. Creating a Service Account
+
+
+
+We are creating Service Account with the name `admin-user` in namespace `kubernetes-dashboard` first.
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+```
+
+
+
+###### 2. Creating a ClusterRoleBinding
+
+
+
+In most cases after provisioning the cluster using `kops`, `kubeadm` or any other popular tool, the `ClusterRole` `cluster-admin` already exists in the cluster. We can use it and create only a `ClusterRoleBinding` for our `ServiceAccount`. If it does not exist then you need to create this role first and grant required privileges manually.
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+```
+
+
+
+###### 3. Getting a Bearer Token for ServiceAccount
+
+
+
+Now we need to find the token we can use to log in. Execute the following command:
+
+```
+kubectl -n kubernetes-dashboard create token admin-user
+```
+
+
+
+It should print something like:
+
+```
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLXY1N253Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIwMzAzMjQzYy00MDQwLTRhNTgtOGE0Ny04NDllZTliYTc5YzEiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZXJuZXRlcy1kYXNoYm9hcmQ6YWRtaW4tdXNlciJ9.Z2JrQlitASVwWbc-s6deLRFVk5DWD3P_vjUFXsqVSY10pbjFLG4njoZwh8p3tLxnX_VBsr7_6bwxhWSYChp9hwxznemD5x5HLtjb16kI9Z7yFWLtohzkTwuFbqmQaMoget_nYcQBUC5fDmBHRfFvNKePh_vSSb2h_aYXa8GV5AcfPQpY7r461itme1EXHQJqv-SN-zUnguDguCTjD80pFZ_CmnSE1z9QdMHPB8hoB4V68gtswR1VLa6mSYdgPwCHauuOobojALSaMc3RH7MmFUumAgguhqAkX3Omqd3rJbYOMRuMjhANqd08piDC3aIabINX6gP5-Tuuw2svnV6NYQ
+```
+
+
+
+Check [Kubernetes docs](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-an-api-token-for-a-serviceaccount) for more information about API tokens for a ServiceAccount.
+
+
+
+###### 4. Getting a long-lived Bearer Token for ServiceAccount
+
+
+
+We can also create a token with the secret which bound the service account and the token will be saved in the Secret:
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+  annotations:
+    kubernetes.io/service-account.name: "admin-user"   
+type: kubernetes.io/service-account-token  
+```
+
+
+
+After Secret is created, we can execute the following command to get the token which is saved in the Secret:
+
+```
+kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath="{.data.token}" | base64 -d
+```
+
+
+
+Check [Kubernetes docs](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#manually-create-a-long-lived-api-token-for-a-serviceaccount) for more information about long-lived API tokens for a ServiceAccount.
+
+
+
+###### 5. Accessing Dashboard
+
+
+
+Now copy the token and paste it into the `Enter token` field on the login screen.
+
+[![Sing in](https://github.com/kubernetes/dashboard/raw/master/docs/images/signin.png)](https://github.com/kubernetes/dashboard/blob/master/docs/images/signin.png)
+
+Click the `Sign in` button and that's it. You are now logged in as an admin.
+
+**Note** Token login is ONLY allowed when the browser is accessing the UI over https. If your networking path to the UI is via http, the login will fail with an invalid token error.
+
+[![Overview](https://github.com/kubernetes/dashboard/raw/master/docs/images/overview.png)](https://github.com/kubernetes/dashboard/blob/master/docs/images/overview.png)
+
+
+
+###### 6. Clean up and next steps
+
+
+
+Remove the admin `ServiceAccount` and `ClusterRoleBinding`.
+
+```
+kubectl -n kubernetes-dashboard delete serviceaccount admin-user
+kubectl -n kubernetes-dashboard delete clusterrolebinding admin-user
+```
+
+
+
+In order to find out more about how to grant/deny permissions in Kubernetes read the official [authentication](https://kubernetes.io/docs/reference/access-authn-authz/authentication/) & [authorization](https://kubernetes.io/docs/reference/access-authn-authz/authorization/) documentation.
+
+
+
+##### 9.3.4.3 대시보드 UI 접속
+
+
+
+클러스터 데이터를 보호하기 위해, 대시보드는 기본적으로 최소한의 RBAC 설정을 제공한다. 현재, 대시보드는 Bearer 토큰으로 로그인하는 방법을 제공한다. 
+
+
+
+###### 1. 커맨드 라인 프록시 실행
+
+`kubectl` 커맨드라인 도구를 이용해 다음 커맨드를 실행함으로써 대시보드로의 접속을 활성화할 수 있다.
+
+```sh
+$ kubectl proxy
+Starting to serve on 127.0.0.1:8001
+```
+
+
+
+kubectl은 http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/를 통해 대시보드에 접속할 수 있게 해줄 것이다.
+
+
+
+UI는 오직  커맨드가 실행된 머신에서만 접근 가능하다. 상세 내용은 `kubectl proxy --help` 옵션을 확인한다.
+
+
+
+> #### 참고:
+>
+> Kubeconfig 인증 방법은 외부 아이덴티티 프로바이더 또는 X.509 인증서를 지원하지 않는다.
+
+
+
+초기 클러스터 대시보드에 접근하면, 환영 페이지를 볼 수 있다. 이 페이지는 첫 애플리케이션을 배포하는 버튼이 있을 뿐만 아니라, 이 문서의 링크를 포함하고 있다. 게다가, 대시보드가 있는 클러스터에서 기본적으로 `kube-system` [네임스페이스](https://kubernetes.io/ko/docs/tasks/administer-cluster/namespaces/)이 동작중인 시스템 애플리케이션을 볼 수 있다.
+
+![Kubernetes Dashboard welcome page](https://kubernetes.io/images/docs/ui-dashboard-zerostate.png)
+
+##### 9.3.4.4 컨테이너화 된 애플리케이션 배포
+
+대시보드를 이용하여 컨테이너화 된 애플리케이션을 디플로이먼트와 간단한 마법사를 통한 선택적인 서비스로 생성하고 배포할 수 있다. 애플리케이션 세부 정보를 수동으로 지정할 수 있고, 또는 애플리케이션 구성을 포함한 YAML 또는 JSON *매니페스트(manifest)* 파일을 업로드할 수 있다.
+
+시작하는 페이지의 상위 오른쪽 코너에 있는 **CREATE** 버튼을 클릭한다.
+
+###### 1. 애플리케이션 세부 정보 지정
+
+배포 마법사는 다음 정보를 제공한다.
+
+- **앱 이름** (필수): 애플리케이션 이름. [레이블](https://kubernetes.io/ko/docs/concepts/overview/working-with-objects/labels/) 이름은 배포할 모든 디플로이먼트와 서비스에 추가되어야 한다.
+
+  애플리케이션 이름은 선택된 쿠버네티스 [네임스페이스](https://kubernetes.io/ko/docs/tasks/administer-cluster/namespaces/) 안에서 유일해야 한다. 소문자로 시작해야 하며, 소문자 또는 숫자로 끝나고, 소문자, 숫자 및 대쉬(-)만을 포함해야 한다. 24 문자만을 제한한다. 처음과 끝의 스페이스는 무시된다.
+
+- **컨테이너 이미지** (필수): 레지스트리에 올라간 퍼블릭 도커 [컨테이너 이미지](https://kubernetes.io/ko/docs/concepts/containers/images/) 또는 프라이빗 이미지(대체로 Google Container Registry 또는 도커 허브에 올라간)의 URL. 컨테이너 이미지 사양은 콜론으로 끝난다.
+
+- **파드의 수** (필수): 배포하고 싶은 애플리케이션의 원하는 목표 파드 개수. 값은 양의 정수만 허용됩니다.
+
+  클러스터에 의도한 파드의 수를 유지하기 위해서 [디플로이먼트](https://kubernetes.io/ko/docs/concepts/workloads/controllers/deployment/)가 생성될 것이다.
+
+- **서비스** (선택): 일부 애플리케이션의 경우, (예를 들어, 프론트엔드) 아마도 클러스터 바깥의 퍼블릭 IP 주소를 가진 (외부 서비스) 외부에 [서비스](https://kubernetes.io/ko/docs/concepts/services-networking/service/)를 노출시키고 싶을 수 있다.
+
+  #### 참고:
+
+  외부 서비스들을 위해, 한 개 또는 여러 개의 포트를 열어 둘 필요가 있다.
+
+  클러스터 내부에서만 보고 싶은 어떤 서비스들이 있을 것이다. 이를 내부 서비스라고 한다.
+
+  서비스 타입과는 무관하게, 서비스 생성을 선택해서 컨테이너의 (들어오는 패킷의) 포트를 리슨한다면, 두 개의 포트를 정의해야 한다. 서비스는 컨테이너가 바라보는 타겟 포트와 (들어오는 패킷의) 맵핑하는 포트가 만들어져야 할 것이다. 서비스는 배포된 파드에 라우팅 될 것이다. 지원하는 프로토콜은 TCP와 UDP이다. 서비스가 이용하는 내부 DNS 이름은 애플리케이션 이름으로 지정한 값이 될 것이다.
+
+만약 필요하다면, 더 많은 세팅을 지정할 수 있는 **자세한 옵션 보기** 섹션에서 확장할 수 있다.
+
+- **설명**: 입력하는 텍스트값은 디플로이먼트에 [어노테이션](https://kubernetes.io/ko/docs/concepts/overview/working-with-objects/annotations/)으로 추가될 것이고, 애플리케이션의 세부사항에 표시될 것이다.
+
+- **레이블**: 애플리케이션에 사용되는 기본적인 [레이블](https://kubernetes.io/ko/docs/concepts/overview/working-with-objects/labels/)은 애플리케이션 이름과 버전이다. 릴리스, 환경, 티어, 파티션, 그리고 릴리스 트랙과 같은 레이블을 디플로이먼트, 서비스, 그리고 파드를 생성할 때 추가적으로 정의할 수 있다.
+
+  예를 들면:
+
+  ```conf
+  release=1.0
+  tier=frontend
+  environment=pod
+  track=stable
+  ```
+
+- **네임스페이스**: 쿠버네티스는 동일한 물리 클러스터를 바탕으로 여러 가상의 클러스터를 제공한다. 이러한 가상 클러스터들을 [네임스페이스](https://kubernetes.io/ko/docs/tasks/administer-cluster/namespaces/)라고 부른다. 논리적으로 명명된 그룹으로 리소스들을 분할할 수 있다.
+
+  대시보드는 드롭다운 리스트로 가능한 모든 네임스페이스를 제공하고, 새로운 네임스페이스를 생성할 수 있도록 한다. 네임스페이스 이름은 최대 63개의 영숫자 단어와 대시(-)를 포함하고 있지만 대문자를 가지지 못한다. 네임스페이스 이름은 숫자로만 구성할 수 없다. 만약 이름을 10이라는 숫자로 세팅한다면, 파드는 기본 네임스페이스로 배정하게 될 것이다.
+
+  네임스페이스 생성이 성공하는 경우, 생성된 네임스페이스가 기본으로 선택된다. 만약 생성에 실패하면, 첫 번째 네임스페이스가 선택된다.
+
+- **이미지 풀(Pull) 시크릿**: 특정 도커 컨테이너 이미지가 프라이빗한 경우, [풀(Pull) 시크릿](https://kubernetes.io/ko/docs/concepts/configuration/secret/) 자격 증명을 요구한다.
+
+  대시보드는 가능한 모든 시크릿을 드롭다운 리스트로 제공하며, 새로운 시크릿을 생성할 수 있도록 한다. 시크릿 이름은 예를 들어 `new.image-pull.secret` 과 같이 DNS 도메인 이름 구문으로 따르기로 한다. 시크릿 내용은 base64 인코딩 방식이며, [`.dockercfg`](https://kubernetes.io/ko/docs/concepts/containers/images/#파드에-imagepullsecrets-명시) 파일로 정의된다. 시크릿 이름은 최대 253 문자를 포함할 수 있다.
+
+  이미지 풀(Pull) 시크릿의 생성이 성공한 경우, 기본으로 선택된다. 만약 생성에 실패하면, 시크릿은 허용되지 않는다.
+
+- **CPU 요구 사항 (cores)** 와 **메모리 요구 사항 (MiB)**: 컨테이너를 위한 최소 [리소스 상한](https://kubernetes.io/ko/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/)을 정의할 수 있다. 기본적으로, 파드는 CPU와 메모리 상한을 두지 않고 동작한다.
+
+- **커맨드 실행** 와 **커맨드 인수 실행**: 기본적으로, 컨테이너는 선택된 도커 이미지의 [기본 엔트리포인트 커맨드](https://kubernetes.io/ko/docs/tasks/inject-data-application/define-command-argument-container/)를 실행한다. 커맨드 옵션과 인자를 기본 옵션에 우선 적용하여 사용할 수 있다.
+
+- **특권을 가진(privileged) 상태로 실행**: 다음 세팅은 호스트에서 루트 권한을 가진 프로세스들이 [특권을 가진 컨테이너](https://kubernetes.io/ko/docs/concepts/workloads/pods/#컨테이너에-대한-특권-모드)의 프로세스들과 동등한지 아닌지 정의한다. 특권을 가진(privileged) 컨테이너는 네트워크 스택과 디바이스에 접근하는 것을 조작하도록 활용할 수 있다.
+
+- **환경 변수**: 쿠버네티스 서비스를 [환경 변수](https://kubernetes.io/ko/docs/tasks/inject-data-application/environment-variable-expose-pod-information/)를 통해 노출한다. 환경 변수 또는 인자를 환경 변수들의 값으로 커맨드를 통해 구성할 수 있다. 애플리케이션들이 서비스를 찾는데 사용된다. 값들은 `$(VAR_NAME)` 구문을 사용하는 다른 변수들로 참조할 수 있다.
+
+###### 2. YAML 또는 JSON 파일 업로드
+
+쿠버네티스는 선언적인 설정을 제공한다. 이 방식에서는 모든 설정이 매니페스트(YAML 또는 JSON 설정 파일)에 저장된다. 매니페스트는 쿠버네티스 [API](https://kubernetes.io/ko/docs/concepts/overview/kubernetes-api/) 리소스 스키마를 사용한다.
+
+배포 마법사를 통해 애플리케이션 세부 사항들을 지정하는 대신, 애플리케이션을 하나 이상의 매니페스트로 정의할 수 있고 대시보드를 이용해서 파일을 업로드할 수 있다.
+
+##### 9.3.4.5 대시보드 사용
+
+다음 섹션들은 어떻게 제공하고 어떻게 사용할 수 있는지에 대한 쿠버네티스 대시보드 UI의 모습을 보여준다.
+
+###### 1. 탐색
+
+클러스터에 정의된 쿠버네티스 오프젝트가 있으면, 대시보드는 초기화된 뷰를 제공한다. 기본적으로 *기본* 네임스페이스의 오프젝트만이 보이는데, 이는 탐색 창에 위치한 네임스페이스 셀렉터를 이용해 변경할 수 있다.
+
+대시보드는 몇 가지 메뉴 카테고리 중에서 대부분의 쿠버네티스 오브젝트 종류와 그룹을 보여준다.
+
+###### 2. 어드민 개요
+
+클러스터와 네임스페이스 관리자에게 대시보드는 노드, 네임스페이스 그리고 퍼시스턴트 볼륨과 세부사항들이 보여진다. 노드는 모든 노드를 통틀어 CPU와 메모리 사용량을 보여준다. 세부사항은 각 노드들에 대한 사용량, 사양, 상태, 할당된 리소스, 이벤트 그리고 노드에서 돌아가는 파드를 보여준다.
+
+###### 3. 워크로드
+
+선택된 네임스페이스에서 구동되는 모든 애플리케이션을 보여준다. 해당 뷰는 애플리케이션의 워크로드 종류(예시: 디플로이먼트, 레플리카셋(ReplicaSet), 스테이트풀셋(StatefulSet))를 보여준다. 각각의 워크로드 종류는 분리하여 볼 수 있다. 리스트는 예를 들어 레플리카셋에서 준비된 파드의 숫자 또는 파드의 현재 메모리 사용량과 같은 워크로드에 대한 실용적인 정보를 요약한다.
+
+워크로드에 대한 세부적인 것들은 상태와 사양 정보, 오프젝트들 간의 관계를 보여준다. 예를 들어, 레플리카셋으로 관리하는 파드들 또는 새로운 레플리카셋과 디플로이먼트를 위한 Horizontal Pod Autoscalers 이다.
+
+###### 4. 서비스
+
+외부로 노출되는 서비스들과 클러스터 내에 발견되는 서비스들을 허용하는 쿠버네티스 리소스들을 보여준다. 이러한 이유로 서비스와 인그레스는 클러스터간의 연결을 위한 내부 엔드포인트들과 외부 사용자를 위한 외부 엔드포인트들에 의해 타게팅된 파드들을 보여준다.
+
+###### 5. 스토리지
+
+스토리지는 애플리케이션이 데이터를 저장하기 위해 사용하는 퍼시턴트볼륨클레임 리소스들을 보여준다.
+
+###### 6. 컨피그맵과 시크릿
+
+클러스터에서 동작 중인 애플리케이션의 라이브 설정을 사용하는 모든 쿠버네티스 리소스들을 보여준다. 컨피그 오브젝트들을 수정하고 관리할 수 있도록 허용하며, 기본적으로는 숨겨져 있는 시크릿들을 보여준다.
+
+###### 7. 로그 뷰어
+
+파드 목록과 세부사항 페이지들은 대시보드에 구현된 로그 뷰어에 링크된다. 뷰어는 단일 파드에 있는 컨테이너들의 로그들을 내려가면 볼 수 있도록 한다.
+
+![Logs viewer](https://kubernetes.io/images/docs/ui-dashboard-logs-view.png)
+
+도커 쿠버네티스에는 대시보드가 설치되어 있지 않기 때문에 쿠버테니스 사이트에 있는 가이드를 이용하여 대시보드를 설치한다.
+
+* https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+
+ 
+
+
+
+##### 9.3.4.6 쿠버네티스 대시보드 삭제
+
+
+
+쿠버네티스 대시보드를 삭제하기 위해서는 가이드에 포함된 설치 yaml 파일을 이용하여 명령어를 apply에서 delete로 바꿔서 실행하면 삭제된다.
+
+
+
+```sh
+$ kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+```
+
+
+
+대시보드가 삭제되었는지 서비스 목록을 확인하면 다음과 같다.
+
+
+
+```sh
+$ kubectl get svc --all-namespaces
+NAMESPACE     NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE
+default       kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP                  68m
+kube-system   kube-dns     ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   68m
+```
+
+
 
 
 
