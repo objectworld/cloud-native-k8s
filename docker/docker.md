@@ -1472,7 +1472,7 @@ f63bcb209672   objectworld/docker-hello:latest   "java -cp @/app/jib-…"
 
 
 ```sh
-$ docker run -d --name userlist2 -p 28080:8080 objectworld/docker-hello:latest
+$ docker run -d --name userlist1 -p 28080:8080 objectworld/docker-hello:latest
 $ docker run -d --name userlist2 -p 28081:8080 objectworld/docker-hello:latest
 ```
 

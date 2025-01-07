@@ -1150,7 +1150,7 @@ kubernetes-dashboard   kubernetes-dashboard        ClusterIP   10.100.193.200   
 
 
 ```sh
-$ kubectl proxy --port=8001 --address=172.30.125.196 --accept-hosts='^*$'
+$ kubectl proxy --port=8001 --accept-hosts='^*$'
 ```
 
 
